@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type AccessoryKind = "Eyes" | "Hats" | "Special";
+export type AccessoryKind = "Background" | "Eyes" | "Hats" | "Special";
 export type DraftPixel = { x: number; y: number; color: string };
 export type DraftLayer = {
   id: string;

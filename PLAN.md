@@ -195,19 +195,15 @@ There are no X API credentials or paid X API calls in the website flow.
 - Every 1/1 starts with the actual canonical raccoon body from `raccoon.py`, including
   its symbolic fur keys and separated default-eye cells.
 - Post types: `ONE_OF_ONE` or `TRAIT_EXTENSION`.
-- Trait categories are the generator's categories: Background, Fur, Eyes, Ears, Tails,
-  Masks, Hats, and Special. The UI can use "accessory" as friendly copy, but stored data
-  must name its generator stage. A general head accessory maps to Hats; a mouth or
-  companion accessory maps to Special.
+- Community-draw trait categories are Background, Eyes, Hats, and Special. Stored data
+  names the matching generator stage. Ears, Masks, and Tails remain compatibility test
+  libraries rather than community-draw post categories.
 - A trait post can declare multiple changed trait types.
 - A submission that changes multiple categories stores a separate delta for each stage.
   It is never flattened into one ambiguous overlay.
-- Hat submissions are previewed against all 10 ears in both raw and applied modes,
-  mirroring `hat_ear_matrix.py`. The author sees which pixels collide and may propose
-  `DRAW_ALL`, `LEFT_ONLY`, `NO_EARS`, or narrow pair exceptions.
-- Eyes are tested against every mask and fur-pattern combination that touches the face.
-  Tails run the clearance validator. Fur, masks, specials, and backgrounds run their
-  generator-specific validators.
+- Trait submissions can be previewed against all current Ears, Masks, and Tails.
+- While a Background layer is active, the character is hidden on a plain 32×32 canvas.
+  Preview, download, and publish place the completed background beneath the character.
 - Compatibility outcomes are `WORKS`, `CONFLICTS`, and `UNTESTED`, with an optional
   note. Required compatibility checks must be complete before publishing.
 - Rendering uses the exported 32×32 index buffer and the exact mid-pipeline outline
@@ -249,10 +245,10 @@ There are no X API credentials or paid X API calls in the website flow.
 
 ## Submission limits and concurrency
 
-- Default allowance: two published `ONE_OF_ONE` submissions and two published `TRAIT`
-  submissions per user.
-- Drafts and admin-rejected submissions do not consume a slot. Pending, accepted, and
-  gallery-added submissions do.
+- Lifetime allowance: two submitted `ONE_OF_ONE` works per user.
+- Each community trait category—Background, Eyes, Hats, and Special—can be submitted
+  once per user. A multi-trait post consumes each category it contains.
+- Rejected submissions still consume their lifetime/category submission opportunity.
 - The publish transaction locks/checks the allowance and creates the submission
   atomically. Two rapid tabs cannot claim the final slot.
 - Every publish request has an idempotency key. Repeating a successful request returns

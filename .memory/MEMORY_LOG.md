@@ -122,3 +122,28 @@
 - Expanded Draw to 16 common colors and added a native custom color picker with the
   active hexadecimal value, allowing creators to select or mix any color.
 - Frontend TypeScript, ESLint, 16 renderer tests, and the production build all passed.
+
+## 2026-07-25 — Expanded compatibility and lifetime trait limits
+
+- Expanded Draw compatibility from Ears only to selectable Ears, Masks, and Tails
+  groups backed by every real trait in those generator categories.
+- Added Background as the fourth community-draw trait alongside Eyes, Hats, and
+  Special.
+- Background editing hides the Maskborn on a plain 32×32 canvas. A dedicated completion
+  toggle restores the Maskborn above the painted pixels; downloads and published
+  previews also composite Background beneath the base and all other layers above it.
+- Changed submission allowance to two lifetime 1/1 submissions and one lifetime
+  submission for each of Background, Eyes, Hats, and Special. Multi-trait posts consume
+  every category they include, and rejected submissions still consume those chances.
+- The backend now accepts only those four community trait categories, serializes
+  publish checks per user with a PostgreSQL advisory transaction lock, and returns a
+  specific conflict listing already-used categories.
+- The Draw page loads profile slot state, removes used trait types from the add-layer
+  choices, disables 1/1 after both chances are consumed, and blocks publishing a
+  persisted draft containing an already-submitted type.
+- The Profile page now shows live 1/1 usage out of two and live trait-category usage out
+  of four instead of the former hardcoded two-trait-slot presentation.
+- Updated `PLAN.md` to reflect the four submission traits, three compatibility groups,
+  background compositing behavior, and lifetime allowance rules.
+- Verification passed: frontend TypeScript, ESLint, 16 renderer tests, and production
+  build; backend TypeScript, 5 API tests, and production build.

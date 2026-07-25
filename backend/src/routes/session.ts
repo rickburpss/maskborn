@@ -45,9 +45,22 @@ sessionRouter.get("/profile", requireAuth, asyncRoute(async (req, res) => {
     }),
   ]);
 
-  const consumed = {
-    oneOfOne: submissions.filter((item) => item.kind === "ONE_OF_ONE" && !["REJECTED", "WITHDRAWN"].includes(item.status)).length,
-    trait: submissions.filter((item) => item.kind === "TRAIT_EXTENSION" && !["REJECTED", "WITHDRAWN"].includes(item.status)).length,
+  const allowedTraitCategories = ["BACKGROUND", "EYES", "HATS", "SPECIAL"];
+  const usedTraitCategories = [...new Set(
+    submissions
+      .filter((item) => item.kind === "TRAIT_EXTENSION")
+      .flatMap((item) => item.categories),
+  )].filter((category) => allowedTraitCategories.includes(category));
+  const slots = {
+    oneOfOne: {
+      limit: 2,
+      consumed: submissions.filter((item) => item.kind === "ONE_OF_ONE").length,
+    },
+    traits: {
+      limitPerCategory: 1,
+      allowedCategories: allowedTraitCategories,
+      usedCategories: usedTraitCategories,
+    },
   };
-  res.json({ user, submissions, drafts, restrictions, slots: { limit: 2, consumed } });
+  res.json({ user, submissions, drafts, restrictions, slots });
 }));

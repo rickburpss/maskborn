@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Download, Eraser, Eye, EyeOff, Plus, RotateCcw, Save, Send, Trash2 } from "lucide-react";
 import NextImage from "next/image";
 import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -16,8 +17,12 @@ const palette = [
   "#E881A6", "#A45488", "#7356A8", "#5B67A5",
   "#3D91C7", "#57B8A6", "#5A8F74", "#8B633F",
 ];
-const accessoryKinds: AccessoryKind[] = ["Eyes", "Hats", "Special"];
-const earCategory = collection.categories.find((category) => category.name === "Ears")!;
+const accessoryKinds: AccessoryKind[] = ["Background", "Eyes", "Hats", "Special"];
+const compatibilityGroups = [
+  { name: "Ears", categoryIndex: 3 },
+  { name: "Masks", categoryIndex: 5 },
+  { name: "Tails", categoryIndex: 4 },
+] as const;
 
 function visiblePixels(layers: DraftLayer[]) {
   return layers.filter((layer) => layer.visible).flatMap((layer) => layer.pixels);
@@ -36,10 +41,13 @@ function PixelLayers({ layers }: { layers: DraftLayer[] }) {
 export function DrawStudio() {
   const draft = useDraftStore();
   const session = useCurrentUser();
+  const queryClient = useQueryClient();
   const discordVerified = session.data?.user.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   ) ?? false;
   const [tab, setTab] = useState<"canvas" | "compatibility">("canvas");
+  const [compatibilityGroup, setCompatibilityGroup] = useState<"Ears" | "Masks" | "Tails">("Ears");
+  const [previewBackground, setPreviewBackground] = useState(false);
   const [tool, setTool] = useState<"draw" | "erase">("draw");
   const [drawing, setDrawing] = useState(false);
   const [published, setPublished] = useState(false);
@@ -49,6 +57,29 @@ export function DrawStudio() {
   const lastSavedAt = useRef<string | null>(null);
   const publishAttempt = useRef<{ hash: string; key: string } | null>(null);
   const pixels = useMemo(() => visiblePixels(draft.layers), [draft.layers]);
+  const backgroundLayers = draft.layers.filter((layer) => layer.kind === "Background");
+  const foregroundLayers = draft.layers.filter((layer) => layer.kind !== "Background");
+  const activeLayer = draft.layers.find((layer) => layer.id === draft.activeLayerId);
+  const editingBackground = activeLayer?.kind === "Background" && !previewBackground;
+  const selectedCompatibility = compatibilityGroups.find((group) => group.name === compatibilityGroup)!;
+  const compatibilityCategory = collection.categories.find((category) => category.name === compatibilityGroup)!;
+  const profile = useQuery({
+    queryKey: ["profile", "submission-slots"],
+    queryFn: () => apiFetch<{
+      slots: {
+        oneOfOne: { limit: number; consumed: number };
+        traits: { usedCategories: string[] };
+      };
+    }>("/profile"),
+    enabled: discordVerified,
+    retry: false,
+  });
+  const usedTraitCategories = new Set(profile.data?.slots.traits.usedCategories ?? []);
+  const availableAccessoryKinds = accessoryKinds.filter((kind) => !usedTraitCategories.has(kind.toUpperCase()));
+  const repeatedDraftTraits = draft.postType === "ACCESSORY"
+    ? [...new Set(draft.layers.map((layer) => layer.kind))].filter((kind) => usedTraitCategories.has(kind.toUpperCase()))
+    : [];
+  const oneOfOneExhausted = (profile.data?.slots.oneOfOne.consumed ?? 0) >= (profile.data?.slots.oneOfOne.limit ?? 2);
 
   useEffect(() => {
     if (!draft.updatedAt || !session.data?.user.id || !discordVerified || lastSavedAt.current === draft.updatedAt) return;
@@ -86,6 +117,7 @@ export function DrawStudio() {
   }, [draft, session.data?.user.id, discordVerified]);
 
   const editAtPointer = (event: PointerEvent<SVGSVGElement>) => {
+    if (activeLayer?.kind === "Background" && previewBackground) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = Math.max(0, Math.min(31, Math.floor((event.clientX - bounds.left) / bounds.width * 32)));
     const y = Math.max(0, Math.min(31, Math.floor((event.clientY - bounds.top) / bounds.height * 32)));
@@ -100,8 +132,10 @@ export function DrawStudio() {
   };
 
   const buildSvg = (base = "") => {
-    const rects = pixels.map((pixel) => `<rect x="${pixel.x}" y="${pixel.y}" width="1" height="1" fill="${pixel.color}"/>`).join("");
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="512" height="512" shape-rendering="crispEdges">${base}${rects}</svg>`;
+    const rects = (layers: DraftLayer[]) => visiblePixels(layers)
+      .map((pixel) => `<rect x="${pixel.x}" y="${pixel.y}" width="1" height="1" fill="${pixel.color}"/>`)
+      .join("");
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="512" height="512" shape-rendering="crispEdges">${rects(backgroundLayers)}${base}${rects(foregroundLayers)}</svg>`;
   };
 
   const download = async () => {
@@ -133,6 +167,11 @@ export function DrawStudio() {
       setPublishStatus("error");
       return;
     }
+    if (repeatedDraftTraits.length > 0) {
+      setPublishError(`Already submitted trait type: ${repeatedDraftTraits.join(", ")}. Remove it and use one of the remaining types.`);
+      setPublishStatus("error");
+      return;
+    }
     setPublishStatus("publishing");
     setPublishError("");
     try {
@@ -155,7 +194,13 @@ export function DrawStudio() {
           categories,
           pixelData: { schemaVersion: draft.schemaVersion, startBlank: draft.startBlank, layers: draft.layers },
           compatibility: draft.postType === "ACCESSORY"
-            ? { checkedAgainst: earCategory.traits.map((ear) => ear.name), layerVisibility: draft.layers.map((layer) => ({ id: layer.id, visible: layer.visible })) }
+            ? {
+                checkedAgainst: Object.fromEntries(compatibilityGroups.map((group) => [
+                  group.name,
+                  collection.categories.find((category) => category.name === group.name)!.traits.map((trait) => trait.name),
+                ])),
+                layerVisibility: draft.layers.map((layer) => ({ id: layer.id, visible: layer.visible })),
+              }
             : undefined,
           mediaHash,
           previewAssetUrl,
@@ -163,6 +208,7 @@ export function DrawStudio() {
       });
       setPublished(true);
       setPublishStatus("idle");
+      await queryClient.invalidateQueries({ queryKey: ["profile", "submission-slots"] });
     } catch (error) {
       setPublishError((error as Error).message);
       setPublishStatus("error");
@@ -174,7 +220,7 @@ export function DrawStudio() {
       <div className="studio-toolbar">
         <div className="segmented">
           <button className={tab === "canvas" ? "active" : ""} onClick={() => setTab("canvas")}>Pixel canvas</button>
-          <button className={tab === "compatibility" ? "active" : ""} onClick={() => setTab("compatibility")}>Ear compatibility</button>
+          <button className={tab === "compatibility" ? "active" : ""} onClick={() => setTab("compatibility")}>Compatibility</button>
         </div>
         <div className="save-state">
           <Save size={14} />
@@ -182,7 +228,7 @@ export function DrawStudio() {
         </div>
         <button className="text-button" onClick={draft.reset}><RotateCcw size={14} /> Reset</button>
         <button className="button button-dark" onClick={download}><Download size={15} /> Download</button>
-        <button className="button button-amber" onClick={publish} disabled={publishStatus === "publishing"}>
+        <button className="button button-amber" onClick={publish} disabled={publishStatus === "publishing" || repeatedDraftTraits.length > 0}>
           <Send size={15} /> {publishStatus === "publishing" ? "Publishing…" : "Publish"}
         </button>
       </div>
@@ -201,9 +247,10 @@ export function DrawStudio() {
             <div className="plain-field">
               <span>Post as</span>
               <div className="post-type-switch">
-                <button className={draft.postType === "ONE_OF_ONE" ? "active" : ""} onClick={() => draft.setPostType("ONE_OF_ONE")}>1/1</button>
-                <button className={draft.postType === "ACCESSORY" ? "active" : ""} onClick={() => draft.setPostType("ACCESSORY")}>Accessory</button>
+                <button className={draft.postType === "ONE_OF_ONE" ? "active" : ""} onClick={() => draft.setPostType("ONE_OF_ONE")} disabled={oneOfOneExhausted}>1/1</button>
+                <button className={draft.postType === "ACCESSORY" ? "active" : ""} onClick={() => draft.setPostType("ACCESSORY")}>Trait(s)</button>
               </div>
+              {oneOfOneExhausted && <p className="field-hint">Both lifetime 1/1 submissions have been used.</p>}
             </div>
             {draft.postType === "ONE_OF_ONE" && (
               <div className="plain-field">
@@ -215,7 +262,7 @@ export function DrawStudio() {
               </div>
             )}
             {draft.postType === "ACCESSORY" && (
-              <p className="studio-note">Accessories always start on the canonical base. Add one or more Eyes, Hats, or Special layers.</p>
+              <p className="studio-note">Trait posts start on the canonical base. Each of Background, Eyes, Hats, and Special can be submitted only once per profile.</p>
             )}
             <div className="tool-row">
               <button className={tool === "draw" ? "active" : ""} onClick={() => setTool("draw")}>Pencil</button>
@@ -250,24 +297,50 @@ export function DrawStudio() {
               onPointerUp={() => setDrawing(false)}
               onPointerCancel={() => setDrawing(false)}
             >
-              {(draft.postType === "ACCESSORY" || !draft.startBlank) && <image href="/collection/base.svg" width="32" height="32" />}
-              <PixelLayers layers={draft.layers} />
+              {editingBackground ? (
+                <PixelLayers layers={backgroundLayers} />
+              ) : (
+                <>
+                  <PixelLayers layers={backgroundLayers} />
+                  {(draft.postType === "ACCESSORY" || !draft.startBlank) && <image href="/collection/base.svg" width="32" height="32" />}
+                  <PixelLayers layers={foregroundLayers} />
+                </>
+              )}
               <path className="pixel-grid-lines" d={Array.from({ length: 31 }, (_, index) => `M${index + 1} 0V32M0 ${index + 1}H32`).join("")} />
               <rect width="32" height="32" fill="transparent" />
             </svg>
-            <div className="canvas-caption"><span>32 × 32</span><p>Drag to draw. Right-click or choose Erase to remove pixels.</p></div>
+            <div className="canvas-caption">
+              <span>32 × 32</span>
+              <p>{editingBackground ? "Background mode: the Maskborn is hidden while you paint." : "Drag to draw. Right-click or choose Erase to remove pixels."}</p>
+              {activeLayer?.kind === "Background" && (
+                <button className="text-button background-preview-toggle" onClick={() => setPreviewBackground((value) => !value)}>
+                  {previewBackground ? "Back to painting" : "Done · preview with Maskborn"}
+                </button>
+              )}
+            </div>
           </div>
 
           <aside className="pixel-layers-panel">
             <div className="layer-panel-head">
-              <div><p className="eyebrow">Accessory layers</p><h3>What you are adding</h3></div>
+              <div><p className="eyebrow">Trait layers</p><h3>What you are adding</h3></div>
             </div>
             <div className="add-accessory-row">
-              {accessoryKinds.map((kind) => <button key={kind} onClick={() => draft.addLayer(kind)}><Plus size={13} /> {kind}</button>)}
+              {availableAccessoryKinds.map((kind) => (
+                  <button key={kind} onClick={() => {
+                    draft.addLayer(kind);
+                    if (kind === "Background") setPreviewBackground(false);
+                  }}>
+                    <Plus size={13} /> {kind}
+                  </button>
+              ))}
+              {availableAccessoryKinds.length === 0 && <p className="field-hint">All four trait submission types have been used.</p>}
             </div>
             <div className="draw-layer-list">
               {draft.layers.map((layer, index) => (
-                <article className={draft.activeLayerId === layer.id ? "active" : ""} key={layer.id} onClick={() => draft.setActiveLayer(layer.id)}>
+                <article className={draft.activeLayerId === layer.id ? "active" : ""} key={layer.id} onClick={() => {
+                  draft.setActiveLayer(layer.id);
+                  if (layer.kind === "Background") setPreviewBackground(false);
+                }}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   <div><b>{layer.kind}</b><small>{layer.pixels.length} pixels</small></div>
                   <button onClick={(event) => { event.stopPropagation(); draft.toggleLayer(layer.id); }} aria-label={`Toggle ${layer.kind}`}>
@@ -284,20 +357,28 @@ export function DrawStudio() {
       ) : (
         <section className="ear-compatibility">
           <div className="compatibility-copy">
-            <p className="eyebrow">Real generator ears</p>
-            <h2>Check the accessory against every ear.</h2>
-            <p>Your visible Eyes, Hats, and Special pixels are placed over each of the ten current ear traits. Hide a layer to isolate another accessory.</p>
+            <p className="eyebrow">Real generator traits</p>
+            <h2>Check ears, masks, and tails.</h2>
+            <p>Switch groups to see your visible Eyes, Hats, and Special pixels against every current compatibility trait. Background layers stay beneath the character.</p>
+            <div className="compatibility-switch">
+              {compatibilityGroups.map((group) => (
+                <button className={compatibilityGroup === group.name ? "active" : ""} key={group.name} onClick={() => setCompatibilityGroup(group.name)}>
+                  {group.name} <span>{collection.categories.find((category) => category.name === group.name)!.count}</span>
+                </button>
+              ))}
+            </div>
           </div>
           <div className="ear-preview-grid">
-            {earCategory.traits.map((ear) => {
-              const selection: TraitSelection = [0, 0, 0, ear.index, 0, 0, 0, 0];
+            {compatibilityCategory.traits.map((trait) => {
+              const selection = [0, 0, 0, 0, 0, 0, 0, 0] as TraitSelection;
+              selection[selectedCompatibility.categoryIndex] = trait.index;
               return (
-                <article key={ear.name}>
+                <article key={trait.name}>
                   <div className="compatibility-art">
                     <NextImage src={composeMaskbornDataUrl(selection)} alt="" fill unoptimized />
-                    <svg viewBox="0 0 32 32" shapeRendering="crispEdges"><PixelLayers layers={draft.layers} /></svg>
+                    <svg viewBox="0 0 32 32" shapeRendering="crispEdges"><PixelLayers layers={foregroundLayers} /></svg>
                   </div>
-                  <span>Ears</span><h3>{ear.name}</h3>
+                  <span>{compatibilityGroup}</span><h3>{trait.name}</h3>
                 </article>
               );
             })}

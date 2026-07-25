@@ -1413,6 +1413,12 @@ h3 {
   min-width: 0;
 }
 
+.post-type-switch button:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .trait-types > span,
 .layer-head > span {
   display: block;
@@ -1849,8 +1855,15 @@ h3 {
 }
 
 .canvas-caption p {
+  flex: 1;
   margin: 0;
   text-align: right;
+}
+
+.background-preview-toggle {
+  flex: 0 0 auto;
+  color: var(--amber-dark);
+  white-space: nowrap;
 }
 
 .layer-panel-head h3 {
@@ -1867,6 +1880,12 @@ h3 {
 .add-accessory-row button {
   flex: 1 1 70px;
   padding-inline: 8px;
+}
+
+.add-accessory-row button:disabled {
+  background: #d8d3c9;
+  color: var(--muted);
+  cursor: not-allowed;
 }
 
 .draw-layer-list {
@@ -1932,9 +1951,37 @@ h3 {
   line-height: 0.88;
 }
 
-.compatibility-copy > p:last-child {
+.compatibility-copy > p:not(.eyebrow) {
   color: var(--muted);
   line-height: 1.6;
+}
+
+.compatibility-switch {
+  display: grid;
+  gap: 7px;
+  margin-top: 28px;
+}
+
+.compatibility-switch button {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border: 1px solid var(--line-dark);
+  background: transparent;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.compatibility-switch button.active {
+  border-color: var(--ink);
+  background: var(--amber);
+}
+
+.compatibility-switch span {
+  font-size: 9px;
 }
 
 .ear-preview-grid {
@@ -3518,6 +3565,10 @@ body:has(.admin-shell) .site-footer {
 
   .canvas-caption p {
     text-align: left;
+  }
+
+  .background-preview-toggle {
+    white-space: normal;
   }
 
   .draw-layer-list {

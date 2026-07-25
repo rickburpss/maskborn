@@ -21,10 +21,17 @@ const submissionBody = z.object({
   previewAssetUrl: z.string().url().max(150_000),
   sourcePostUrl: z.string().url().max(2048).optional(),
 });
+const communityTraitCategories = new Set<GeneratorCategory>(["BACKGROUND", "EYES", "HATS", "SPECIAL"]);
 
 submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async (req, res) => {
   const body = submissionBody.parse(req.body);
   const userId = req.auth!.userId;
+  if (body.kind === "TRAIT_EXTENSION") {
+    const unsupported = body.categories.filter((category) => !communityTraitCategories.has(category));
+    if (unsupported.length > 0) {
+      throw new ApiError(422, "UNSUPPORTED_TRAIT_CATEGORY", "Trait submissions can contain only Background, Eyes, Hats, and Special.");
+    }
+  }
   const key = req.header("idempotency-key");
   if (!key || key.length > 100) {
     throw new ApiError(400, "IDEMPOTENCY_KEY_REQUIRED", "Send a unique Idempotency-Key when publishing.");
@@ -45,15 +52,29 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
   }
 
   const result = await db.$transaction(async (tx) => {
-    const consumed = await tx.submission.count({
-      where: {
-        userId,
-        kind: body.kind,
-        status: { in: ["PENDING", "REVIEWING", "ACCEPTED", "GALLERY_ADDED"] },
-      },
-    });
-    if (consumed >= 2) {
-      throw new ApiError(409, "SUBMISSION_LIMIT_REACHED", `Both ${body.kind === "ONE_OF_ONE" ? "1/1" : "trait"} slots are already used.`);
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
+    const categories = [...new Set(body.categories)];
+
+    if (body.kind === "ONE_OF_ONE") {
+      const oneOfOneCount = await tx.submission.count({ where: { userId, kind: "ONE_OF_ONE" } });
+      if (oneOfOneCount >= 2) {
+        throw new ApiError(409, "SUBMISSION_LIMIT_REACHED", "Both lifetime 1/1 submission slots are already used.");
+      }
+    } else {
+      const priorTraitSubmissions = await tx.submission.findMany({
+        where: { userId, kind: "TRAIT_EXTENSION", categories: { hasSome: categories } },
+        select: { categories: true },
+      });
+      const previouslySubmitted = new Set(priorTraitSubmissions.flatMap((submission) => submission.categories));
+      const repeatedCategories = categories.filter((category) => previouslySubmitted.has(category));
+      if (repeatedCategories.length > 0) {
+        throw new ApiError(
+          409,
+          "TRAIT_CATEGORY_ALREADY_SUBMITTED",
+          `You have already submitted: ${repeatedCategories.map((category) => category.toLowerCase()).join(", ")}.`,
+          { categories: repeatedCategories },
+        );
+      }
     }
 
     const restriction = await tx.voteRestriction.findFirst({
@@ -72,7 +93,7 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
         title: body.title,
         description: body.description,
         generatorVersion: body.generatorVersion,
-        categories: [...new Set(body.categories)],
+        categories,
         pixelData: body.pixelData as Prisma.InputJsonValue,
         compatibility: body.compatibility as Prisma.InputJsonValue | undefined,
         mediaHash: body.mediaHash.toLowerCase(),

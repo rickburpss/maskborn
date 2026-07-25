@@ -1,9 +1,11 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Copy, FilePenLine, Plus, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { apiFetch } from "@/lib/api";
 import { artworks } from "@/lib/data";
 import { useSessionStore } from "@/store/session";
 
@@ -16,6 +18,20 @@ export function ProfileDashboard() {
   const wallet = session.data?.user.wallets.find((item) => item.isPrimary)?.address ?? localWallet;
   const userArt = [artworks[0], artworks[3]];
   const payoutEligible = ["Bone Merchant"];
+  const profile = useQuery({
+    queryKey: ["profile", "submission-slots"],
+    queryFn: () => apiFetch<{
+      slots: {
+        oneOfOne: { limit: number; consumed: number };
+        traits: { usedCategories: string[]; allowedCategories: string[] };
+      };
+    }>("/profile"),
+    enabled: Boolean(session.data?.user.id),
+    retry: false,
+  });
+  const oneOfOneSlots = profile.data?.slots.oneOfOne;
+  const usedTraits = profile.data?.slots.traits.usedCategories.length ?? 0;
+  const traitTotal = profile.data?.slots.traits.allowedCategories.length ?? 4;
 
   return (
     <section className="profile-shell shell">
@@ -34,8 +50,8 @@ export function ProfileDashboard() {
 
       <div className="stats-row">
         <article><span>Community score</span><b>701</b><p>Upvotes across your work</p></article>
-        <article><span>1/1 slots</span><b>1 / 2</b><p>One publish slot remains</p></article>
-        <article><span>Trait slots</span><b>1 / 2</b><p>One publish slot remains</p></article>
+        <article><span>1/1 submissions</span><b>{oneOfOneSlots?.consumed ?? 0} / {oneOfOneSlots?.limit ?? 2}</b><p>Two lifetime submissions</p></article>
+        <article><span>Trait types used</span><b>{usedTraits} / {traitTotal}</b><p>One submission per trait type</p></article>
         <article><span>Payout eligible</span><b>{payoutEligible.length}</b><p>Accepted creator collection</p></article>
       </div>
 
