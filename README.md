@@ -11,6 +11,7 @@ the generator, contract-data manifest, rarity, or 1/1 set changes.
 - `frontend`: Next.js, TypeScript, Tailwind CSS, Motion, Zustand, Lenis, TanStack
   Query, and viem.
 - `backend`: Express, TypeScript, Prisma, and PostgreSQL/Neon.
+- `docs/STORAGE_SETUP.md`: private/public R2 setup and accepted-submission export.
 - `scripts/sync-collection.mjs`: validates the exported generator manifest and the
   portable metadata, renderer data, trait previews, fixtures, and 1/1 SVGs using JavaScript.
 - `PLAN.md`: product rules, generator pipeline, API boundaries, abuse handling, and
@@ -84,6 +85,11 @@ lookup or deployed contract is claimed.
 The username and campaign-link behavior is documented in `docs/X_SETUP.md`. Required
 Discord verification and Developer Portal setup are documented in
 `docs/DISCORD_SETUP.md`.
+
+Exact pixel-layer JSON and previews use Cloudflare R2 in production so Neon retains
+only small relational records, object keys, and hashes. Local development uses
+`backend/.local-storage`. Setup and the generator-ready accepted-art export command are
+documented in `docs/STORAGE_SETUP.md`.
 
 For Neon, use its pooled URL for `DATABASE_URL` at runtime and its direct, unpooled
 URL for `DATABASE_URL_UNPOOLED`. Prisma CLI commands read the unpooled URL from

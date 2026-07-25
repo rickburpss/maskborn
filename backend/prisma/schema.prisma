@@ -224,9 +224,15 @@ model Submission {
   generatorVersion String
   categories       GeneratorCategory[]
   pixelData        Json
+  pixelDataKey     String?                   @unique
+  sourceHash       String?
   compatibility    Json?
   mediaHash        String
   previewAssetUrl  String
+  previewAssetKey  String?                   @unique
+  storageProvider  String                    @default("DATABASE")
+  canonicalDataKey String?
+  canonicalHash    String?
   sourcePostUrl    String?
   status           SubmissionStatus          @default(PENDING)
   publishedAt      DateTime                  @default(now())

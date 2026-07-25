@@ -147,3 +147,35 @@
   background compositing behavior, and lifetime allowance rules.
 - Verification passed: frontend TypeScript, ESLint, 16 renderer tests, and production
   build; backend TypeScript, 5 API tests, and production build.
+
+## 2026-07-25 — R2 submission objects and accepted-art exporter
+
+- Added Cloudflare R2 support through the S3-compatible AWS SDK with separate private
+  and public buckets. Exact pixel-layer source JSON and canonical accepted JSON use the
+  private bucket; immutable SVG previews use the public bucket.
+- Added a development fallback under `backend/.local-storage`, including a public asset
+  endpoint, so submission publishing works without Cloudflare credentials locally.
+- Production configuration now requires a complete R2 configuration and rejects a
+  partial/missing setup instead of silently writing artwork to ephemeral server disk.
+- New submission records keep only a small source reference in `pixelData` plus
+  `pixelDataKey`, `sourceHash`, `previewAssetKey`, `storageProvider`, and public preview
+  URL. Canonical export keys and hashes have dedicated fields.
+- Publishing verifies the client preview SHA-256 on the server, writes exact formatted
+  source JSON privately, writes its SVG preview publicly, then stores relational
+  metadata and hashes in Neon. The public feed explicitly omits source payloads.
+- Added an admin-only source retrieval endpoint at
+  `GET /api/admin/submissions/{id}/source`, with compatibility for older database-only
+  submissions.
+- Added strict source validation for a 32×32 canvas, bounded coordinates, six-digit hex
+  colors, layer limits, and the four community kinds: Background, Eyes, Hats, Special.
+- Added `npm run export:submission -- <id-or-slug> [--out path]`. It accepts only
+  reviewed/accepted work, retrieves and hash-verifies the exact source, removes hidden
+  layers, merges overlaps deterministically, orders pixels by row/column, stores a
+  canonical private artifact, records its hash in Neon, and writes `.source.json`,
+  `.canonical.json`, and generator-ready `.mjs` files.
+- Added `docs/STORAGE_SETUP.md` with the two-bucket Cloudflare setup, environment
+  variables, Prisma update, object layout, source retrieval, and export workflow.
+- Added a canonicalization test covering hidden layers, overlap resolution, color
+  normalization, and deterministic pixel ordering.
+- Verification passed: Prisma client generation and schema validation, backend source
+  and script TypeScript checks, 6 tests, and the production build.

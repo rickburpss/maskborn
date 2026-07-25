@@ -3,6 +3,7 @@ import { GeneratorCategory, SubmissionKind, SubmissionStatus } from "../generate
 import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
+import { objectStorage } from "../object-storage.js";
 import { asyncRoute } from "../utils.js";
 
 export const publicRouter = Router();
@@ -10,6 +11,22 @@ export const publicRouter = Router();
 publicRouter.get("/health", (_req, res) => {
   res.json({ ok: true, service: "maskborn-api" });
 });
+
+publicRouter.get(/^\/assets\/(.+)$/, asyncRoute(async (req, res) => {
+  const key = decodeURIComponent(req.path.slice("/assets/".length));
+  try {
+    const asset = await objectStorage.getPublic(key);
+    res.setHeader("content-type", asset.contentType);
+    res.setHeader("cache-control", "public, max-age=31536000, immutable");
+    res.send(asset.body);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT" || code === "NoSuchKey") {
+      throw new ApiError(404, "ASSET_NOT_FOUND", "That artwork asset was not found.");
+    }
+    throw error;
+  }
+}));
 
 const feedQuery = z.object({
   sort: z.enum(["newest", "oldest", "up", "down", "least"]).default("newest"),
@@ -42,7 +59,17 @@ publicRouter.get("/submissions", asyncRoute(async (req, res) => {
       categories: query.category ? { has: query.category } : undefined,
     },
     orderBy,
-    include: {
+    select: {
+      id: true,
+      slug: true,
+      kind: true,
+      title: true,
+      categories: true,
+      previewAssetUrl: true,
+      status: true,
+      publishedAt: true,
+      upvoteCount: true,
+      downvoteCount: true,
       user: {
         select: {
           id: true,

@@ -3,6 +3,7 @@ frontend/.next/
 backend/node_modules/
 backend/dist/
 backend/.env
+backend/.local-storage/
 frontend/.env.local
 *.log
 .DS_Store

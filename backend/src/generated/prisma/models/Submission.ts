@@ -44,8 +44,14 @@ export type SubmissionMinAggregateOutputType = {
   title: string | null
   description: string | null
   generatorVersion: string | null
+  pixelDataKey: string | null
+  sourceHash: string | null
   mediaHash: string | null
   previewAssetUrl: string | null
+  previewAssetKey: string | null
+  storageProvider: string | null
+  canonicalDataKey: string | null
+  canonicalHash: string | null
   sourcePostUrl: string | null
   status: $Enums.SubmissionStatus | null
   publishedAt: Date | null
@@ -62,8 +68,14 @@ export type SubmissionMaxAggregateOutputType = {
   title: string | null
   description: string | null
   generatorVersion: string | null
+  pixelDataKey: string | null
+  sourceHash: string | null
   mediaHash: string | null
   previewAssetUrl: string | null
+  previewAssetKey: string | null
+  storageProvider: string | null
+  canonicalDataKey: string | null
+  canonicalHash: string | null
   sourcePostUrl: string | null
   status: $Enums.SubmissionStatus | null
   publishedAt: Date | null
@@ -82,9 +94,15 @@ export type SubmissionCountAggregateOutputType = {
   generatorVersion: number
   categories: number
   pixelData: number
+  pixelDataKey: number
+  sourceHash: number
   compatibility: number
   mediaHash: number
   previewAssetUrl: number
+  previewAssetKey: number
+  storageProvider: number
+  canonicalDataKey: number
+  canonicalHash: number
   sourcePostUrl: number
   status: number
   publishedAt: number
@@ -113,8 +131,14 @@ export type SubmissionMinAggregateInputType = {
   title?: true
   description?: true
   generatorVersion?: true
+  pixelDataKey?: true
+  sourceHash?: true
   mediaHash?: true
   previewAssetUrl?: true
+  previewAssetKey?: true
+  storageProvider?: true
+  canonicalDataKey?: true
+  canonicalHash?: true
   sourcePostUrl?: true
   status?: true
   publishedAt?: true
@@ -131,8 +155,14 @@ export type SubmissionMaxAggregateInputType = {
   title?: true
   description?: true
   generatorVersion?: true
+  pixelDataKey?: true
+  sourceHash?: true
   mediaHash?: true
   previewAssetUrl?: true
+  previewAssetKey?: true
+  storageProvider?: true
+  canonicalDataKey?: true
+  canonicalHash?: true
   sourcePostUrl?: true
   status?: true
   publishedAt?: true
@@ -151,9 +181,15 @@ export type SubmissionCountAggregateInputType = {
   generatorVersion?: true
   categories?: true
   pixelData?: true
+  pixelDataKey?: true
+  sourceHash?: true
   compatibility?: true
   mediaHash?: true
   previewAssetUrl?: true
+  previewAssetKey?: true
+  storageProvider?: true
+  canonicalDataKey?: true
+  canonicalHash?: true
   sourcePostUrl?: true
   status?: true
   publishedAt?: true
@@ -259,9 +295,15 @@ export type SubmissionGroupByOutputType = {
   generatorVersion: string
   categories: $Enums.GeneratorCategory[]
   pixelData: runtime.JsonValue
+  pixelDataKey: string | null
+  sourceHash: string | null
   compatibility: runtime.JsonValue | null
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey: string | null
+  storageProvider: string
+  canonicalDataKey: string | null
+  canonicalHash: string | null
   sourcePostUrl: string | null
   status: $Enums.SubmissionStatus
   publishedAt: Date
@@ -303,9 +345,15 @@ export type SubmissionWhereInput = {
   generatorVersion?: Prisma.StringFilter<"Submission"> | string
   categories?: Prisma.EnumGeneratorCategoryNullableListFilter<"Submission">
   pixelData?: Prisma.JsonFilter<"Submission">
+  pixelDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  sourceHash?: Prisma.StringNullableFilter<"Submission"> | string | null
   compatibility?: Prisma.JsonNullableFilter<"Submission">
   mediaHash?: Prisma.StringFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringFilter<"Submission"> | string
+  previewAssetKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  storageProvider?: Prisma.StringFilter<"Submission"> | string
+  canonicalDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  canonicalHash?: Prisma.StringNullableFilter<"Submission"> | string | null
   sourcePostUrl?: Prisma.StringNullableFilter<"Submission"> | string | null
   status?: Prisma.EnumSubmissionStatusFilter<"Submission"> | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
@@ -329,9 +377,15 @@ export type SubmissionOrderByWithRelationInput = {
   generatorVersion?: Prisma.SortOrder
   categories?: Prisma.SortOrder
   pixelData?: Prisma.SortOrder
+  pixelDataKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceHash?: Prisma.SortOrderInput | Prisma.SortOrder
   compatibility?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
+  previewAssetKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  storageProvider?: Prisma.SortOrder
+  canonicalDataKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  canonicalHash?: Prisma.SortOrderInput | Prisma.SortOrder
   sourcePostUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
@@ -348,6 +402,8 @@ export type SubmissionOrderByWithRelationInput = {
 export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   slug?: string
+  pixelDataKey?: string
+  previewAssetKey?: string
   userId_mediaHash?: Prisma.SubmissionUserIdMediaHashCompoundUniqueInput
   AND?: Prisma.SubmissionWhereInput | Prisma.SubmissionWhereInput[]
   OR?: Prisma.SubmissionWhereInput[]
@@ -359,9 +415,13 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   generatorVersion?: Prisma.StringFilter<"Submission"> | string
   categories?: Prisma.EnumGeneratorCategoryNullableListFilter<"Submission">
   pixelData?: Prisma.JsonFilter<"Submission">
+  sourceHash?: Prisma.StringNullableFilter<"Submission"> | string | null
   compatibility?: Prisma.JsonNullableFilter<"Submission">
   mediaHash?: Prisma.StringFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringFilter<"Submission"> | string
+  storageProvider?: Prisma.StringFilter<"Submission"> | string
+  canonicalDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  canonicalHash?: Prisma.StringNullableFilter<"Submission"> | string | null
   sourcePostUrl?: Prisma.StringNullableFilter<"Submission"> | string | null
   status?: Prisma.EnumSubmissionStatusFilter<"Submission"> | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
@@ -373,7 +433,7 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   voteEvents?: Prisma.VoteEventListRelationFilter
   statusEvents?: Prisma.SubmissionStatusEventListRelationFilter
   galleryEntry?: Prisma.XOR<Prisma.GalleryEntryNullableScalarRelationFilter, Prisma.GalleryEntryWhereInput> | null
-}, "id" | "slug" | "userId_mediaHash">
+}, "id" | "slug" | "pixelDataKey" | "previewAssetKey" | "userId_mediaHash">
 
 export type SubmissionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -385,9 +445,15 @@ export type SubmissionOrderByWithAggregationInput = {
   generatorVersion?: Prisma.SortOrder
   categories?: Prisma.SortOrder
   pixelData?: Prisma.SortOrder
+  pixelDataKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceHash?: Prisma.SortOrderInput | Prisma.SortOrder
   compatibility?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
+  previewAssetKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  storageProvider?: Prisma.SortOrder
+  canonicalDataKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  canonicalHash?: Prisma.SortOrderInput | Prisma.SortOrder
   sourcePostUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
@@ -414,9 +480,15 @@ export type SubmissionScalarWhereWithAggregatesInput = {
   generatorVersion?: Prisma.StringWithAggregatesFilter<"Submission"> | string
   categories?: Prisma.EnumGeneratorCategoryNullableListFilter<"Submission">
   pixelData?: Prisma.JsonWithAggregatesFilter<"Submission">
+  pixelDataKey?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
+  sourceHash?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
   compatibility?: Prisma.JsonNullableWithAggregatesFilter<"Submission">
   mediaHash?: Prisma.StringWithAggregatesFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringWithAggregatesFilter<"Submission"> | string
+  previewAssetKey?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
+  storageProvider?: Prisma.StringWithAggregatesFilter<"Submission"> | string
+  canonicalDataKey?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
+  canonicalHash?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
   sourcePostUrl?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
   status?: Prisma.EnumSubmissionStatusWithAggregatesFilter<"Submission"> | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeWithAggregatesFilter<"Submission"> | Date | string
@@ -434,9 +506,15 @@ export type SubmissionCreateInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -460,9 +538,15 @@ export type SubmissionUncheckedCreateInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -484,9 +568,15 @@ export type SubmissionUpdateInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -510,9 +600,15 @@ export type SubmissionUncheckedUpdateInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -535,9 +631,15 @@ export type SubmissionCreateManyInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -555,9 +657,15 @@ export type SubmissionUpdateManyMutationInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -576,9 +684,15 @@ export type SubmissionUncheckedUpdateManyInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -620,9 +734,15 @@ export type SubmissionCountOrderByAggregateInput = {
   generatorVersion?: Prisma.SortOrder
   categories?: Prisma.SortOrder
   pixelData?: Prisma.SortOrder
+  pixelDataKey?: Prisma.SortOrder
+  sourceHash?: Prisma.SortOrder
   compatibility?: Prisma.SortOrder
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
+  previewAssetKey?: Prisma.SortOrder
+  storageProvider?: Prisma.SortOrder
+  canonicalDataKey?: Prisma.SortOrder
+  canonicalHash?: Prisma.SortOrder
   sourcePostUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
@@ -644,8 +764,14 @@ export type SubmissionMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   generatorVersion?: Prisma.SortOrder
+  pixelDataKey?: Prisma.SortOrder
+  sourceHash?: Prisma.SortOrder
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
+  previewAssetKey?: Prisma.SortOrder
+  storageProvider?: Prisma.SortOrder
+  canonicalDataKey?: Prisma.SortOrder
+  canonicalHash?: Prisma.SortOrder
   sourcePostUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
@@ -662,8 +788,14 @@ export type SubmissionMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   generatorVersion?: Prisma.SortOrder
+  pixelDataKey?: Prisma.SortOrder
+  sourceHash?: Prisma.SortOrder
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
+  previewAssetKey?: Prisma.SortOrder
+  storageProvider?: Prisma.SortOrder
+  canonicalDataKey?: Prisma.SortOrder
+  canonicalHash?: Prisma.SortOrder
   sourcePostUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   publishedAt?: Prisma.SortOrder
@@ -802,9 +934,15 @@ export type SubmissionCreateWithoutUserInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -826,9 +964,15 @@ export type SubmissionUncheckedCreateWithoutUserInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -880,9 +1024,15 @@ export type SubmissionScalarWhereInput = {
   generatorVersion?: Prisma.StringFilter<"Submission"> | string
   categories?: Prisma.EnumGeneratorCategoryNullableListFilter<"Submission">
   pixelData?: Prisma.JsonFilter<"Submission">
+  pixelDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  sourceHash?: Prisma.StringNullableFilter<"Submission"> | string | null
   compatibility?: Prisma.JsonNullableFilter<"Submission">
   mediaHash?: Prisma.StringFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringFilter<"Submission"> | string
+  previewAssetKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  storageProvider?: Prisma.StringFilter<"Submission"> | string
+  canonicalDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  canonicalHash?: Prisma.StringNullableFilter<"Submission"> | string | null
   sourcePostUrl?: Prisma.StringNullableFilter<"Submission"> | string | null
   status?: Prisma.EnumSubmissionStatusFilter<"Submission"> | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFilter<"Submission"> | Date | string
@@ -900,9 +1050,15 @@ export type SubmissionCreateWithoutStatusEventsInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -925,9 +1081,15 @@ export type SubmissionUncheckedCreateWithoutStatusEventsInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -964,9 +1126,15 @@ export type SubmissionUpdateWithoutStatusEventsInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -989,9 +1157,15 @@ export type SubmissionUncheckedUpdateWithoutStatusEventsInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1012,9 +1186,15 @@ export type SubmissionCreateWithoutVotesInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -1037,9 +1217,15 @@ export type SubmissionUncheckedCreateWithoutVotesInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -1076,9 +1262,15 @@ export type SubmissionUpdateWithoutVotesInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1101,9 +1293,15 @@ export type SubmissionUncheckedUpdateWithoutVotesInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1124,9 +1322,15 @@ export type SubmissionCreateWithoutVoteEventsInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -1149,9 +1353,15 @@ export type SubmissionUncheckedCreateWithoutVoteEventsInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -1188,9 +1398,15 @@ export type SubmissionUpdateWithoutVoteEventsInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1213,9 +1429,15 @@ export type SubmissionUncheckedUpdateWithoutVoteEventsInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1236,9 +1458,15 @@ export type SubmissionCreateWithoutGalleryEntryInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -1261,9 +1489,15 @@ export type SubmissionUncheckedCreateWithoutGalleryEntryInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -1300,9 +1534,15 @@ export type SubmissionUpdateWithoutGalleryEntryInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1325,9 +1565,15 @@ export type SubmissionUncheckedUpdateWithoutGalleryEntryInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1348,9 +1594,15 @@ export type SubmissionCreateManyUserInput = {
   generatorVersion: string
   categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash: string
   previewAssetUrl: string
+  previewAssetKey?: string | null
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
   sourcePostUrl?: string | null
   status?: $Enums.SubmissionStatus
   publishedAt?: Date | string
@@ -1368,9 +1620,15 @@ export type SubmissionUpdateWithoutUserInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1392,9 +1650,15 @@ export type SubmissionUncheckedUpdateWithoutUserInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1416,9 +1680,15 @@ export type SubmissionUncheckedUpdateManyWithoutUserInput = {
   generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
   categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
   pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1486,9 +1756,15 @@ export type SubmissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   generatorVersion?: boolean
   categories?: boolean
   pixelData?: boolean
+  pixelDataKey?: boolean
+  sourceHash?: boolean
   compatibility?: boolean
   mediaHash?: boolean
   previewAssetUrl?: boolean
+  previewAssetKey?: boolean
+  storageProvider?: boolean
+  canonicalDataKey?: boolean
+  canonicalHash?: boolean
   sourcePostUrl?: boolean
   status?: boolean
   publishedAt?: boolean
@@ -1513,9 +1789,15 @@ export type SubmissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   generatorVersion?: boolean
   categories?: boolean
   pixelData?: boolean
+  pixelDataKey?: boolean
+  sourceHash?: boolean
   compatibility?: boolean
   mediaHash?: boolean
   previewAssetUrl?: boolean
+  previewAssetKey?: boolean
+  storageProvider?: boolean
+  canonicalDataKey?: boolean
+  canonicalHash?: boolean
   sourcePostUrl?: boolean
   status?: boolean
   publishedAt?: boolean
@@ -1535,9 +1817,15 @@ export type SubmissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   generatorVersion?: boolean
   categories?: boolean
   pixelData?: boolean
+  pixelDataKey?: boolean
+  sourceHash?: boolean
   compatibility?: boolean
   mediaHash?: boolean
   previewAssetUrl?: boolean
+  previewAssetKey?: boolean
+  storageProvider?: boolean
+  canonicalDataKey?: boolean
+  canonicalHash?: boolean
   sourcePostUrl?: boolean
   status?: boolean
   publishedAt?: boolean
@@ -1557,9 +1845,15 @@ export type SubmissionSelectScalar = {
   generatorVersion?: boolean
   categories?: boolean
   pixelData?: boolean
+  pixelDataKey?: boolean
+  sourceHash?: boolean
   compatibility?: boolean
   mediaHash?: boolean
   previewAssetUrl?: boolean
+  previewAssetKey?: boolean
+  storageProvider?: boolean
+  canonicalDataKey?: boolean
+  canonicalHash?: boolean
   sourcePostUrl?: boolean
   status?: boolean
   publishedAt?: boolean
@@ -1568,7 +1862,7 @@ export type SubmissionSelectScalar = {
   downvoteCount?: boolean
 }
 
-export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "userId" | "kind" | "title" | "description" | "generatorVersion" | "categories" | "pixelData" | "compatibility" | "mediaHash" | "previewAssetUrl" | "sourcePostUrl" | "status" | "publishedAt" | "updatedAt" | "upvoteCount" | "downvoteCount", ExtArgs["result"]["submission"]>
+export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "userId" | "kind" | "title" | "description" | "generatorVersion" | "categories" | "pixelData" | "pixelDataKey" | "sourceHash" | "compatibility" | "mediaHash" | "previewAssetUrl" | "previewAssetKey" | "storageProvider" | "canonicalDataKey" | "canonicalHash" | "sourcePostUrl" | "status" | "publishedAt" | "updatedAt" | "upvoteCount" | "downvoteCount", ExtArgs["result"]["submission"]>
 export type SubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   votes?: boolean | Prisma.Submission$votesArgs<ExtArgs>
@@ -1603,9 +1897,15 @@ export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     generatorVersion: string
     categories: $Enums.GeneratorCategory[]
     pixelData: runtime.JsonValue
+    pixelDataKey: string | null
+    sourceHash: string | null
     compatibility: runtime.JsonValue | null
     mediaHash: string
     previewAssetUrl: string
+    previewAssetKey: string | null
+    storageProvider: string
+    canonicalDataKey: string | null
+    canonicalHash: string | null
     sourcePostUrl: string | null
     status: $Enums.SubmissionStatus
     publishedAt: Date
@@ -2049,9 +2349,15 @@ export interface SubmissionFieldRefs {
   readonly generatorVersion: Prisma.FieldRef<"Submission", 'String'>
   readonly categories: Prisma.FieldRef<"Submission", 'GeneratorCategory[]'>
   readonly pixelData: Prisma.FieldRef<"Submission", 'Json'>
+  readonly pixelDataKey: Prisma.FieldRef<"Submission", 'String'>
+  readonly sourceHash: Prisma.FieldRef<"Submission", 'String'>
   readonly compatibility: Prisma.FieldRef<"Submission", 'Json'>
   readonly mediaHash: Prisma.FieldRef<"Submission", 'String'>
   readonly previewAssetUrl: Prisma.FieldRef<"Submission", 'String'>
+  readonly previewAssetKey: Prisma.FieldRef<"Submission", 'String'>
+  readonly storageProvider: Prisma.FieldRef<"Submission", 'String'>
+  readonly canonicalDataKey: Prisma.FieldRef<"Submission", 'String'>
+  readonly canonicalHash: Prisma.FieldRef<"Submission", 'String'>
   readonly sourcePostUrl: Prisma.FieldRef<"Submission", 'String'>
   readonly status: Prisma.FieldRef<"Submission", 'SubmissionStatus'>
   readonly publishedAt: Prisma.FieldRef<"Submission", 'DateTime'>

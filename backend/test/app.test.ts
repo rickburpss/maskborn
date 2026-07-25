@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
+import { canonicalizePixelData, sourcePixelDataSchema } from "../src/submission-art.js";
 
 process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/maskborn";
 process.env.DATABASE_URL_UNPOOLED = process.env.DATABASE_URL;
@@ -47,5 +48,25 @@ describe("X post URLs", () => {
     expect(extractXPostId("https://x.com/maskborn")).toBeNull();
     expect(extractXPostId("https://x.com.example/status/12345")).toBeNull();
     expect(extractXPostId("https://example.com/maskborn/status/12345")).toBeNull();
+  });
+});
+
+describe("submission artwork canonicalization", () => {
+  it("keeps visible pixels, resolves later-layer overlaps, and sorts coordinates", () => {
+    const source = sourcePixelDataSchema.parse({
+      schemaVersion: 2,
+      startBlank: false,
+      layers: [
+        { id: "background-1", kind: "Background", visible: true, pixels: [{ x: 8, y: 4, color: "#f2b441" }] },
+        { id: "eyes-1", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#ffffff" }, { x: 2, y: 1, color: "#1a1815" }] },
+        { id: "eyes-2", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#d85b45" }] },
+        { id: "hidden", kind: "Special", visible: false, pixels: [{ x: 0, y: 0, color: "#ffffff" }] },
+      ],
+    });
+    const result = canonicalizePixelData(source);
+    expect(result.traits).toEqual([
+      { kind: "Background", stage: 0, pixels: [[8, 4, "#F2B441"]] },
+      { kind: "Eyes", stage: 1, pixels: [[2, 1, "#1A1815"], [4, 9, "#D85B45"]] },
+    ]);
   });
 });

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
 import { requireAdmin, requireVerifiedDiscord } from "../middleware/auth.js";
+import { objectStorage } from "../object-storage.js";
 import { asyncRoute } from "../utils.js";
 
 export const adminRouter = Router();
@@ -18,6 +19,18 @@ adminRouter.get("/review-queue", asyncRoute(async (_req, res) => {
     },
   });
   res.json({ items });
+}));
+
+adminRouter.get("/submissions/:id/source", asyncRoute(async (req, res) => {
+  const submission = await db.submission.findUnique({ where: { id: req.params.id as string } });
+  if (!submission) throw new ApiError(404, "SUBMISSION_NOT_FOUND", "That submission was not found.");
+  if (!submission.pixelDataKey) {
+    res.json({ pixelData: submission.pixelData, sha256: submission.sourceHash, storageProvider: "DATABASE" });
+    return;
+  }
+  const stored = await objectStorage.getPrivate(submission.pixelDataKey);
+  const pixelData = JSON.parse(stored.body.toString("utf8")) as unknown;
+  res.json({ pixelData, sha256: submission.sourceHash, storageProvider: submission.storageProvider });
 }));
 
 const reviewBody = z.object({

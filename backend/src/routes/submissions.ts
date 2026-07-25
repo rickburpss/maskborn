@@ -1,10 +1,13 @@
 import { randomBytes } from "node:crypto";
+import { createHash } from "node:crypto";
 import { GeneratorCategory, Prisma, SubmissionKind } from "../generated/prisma/client.js";
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
 import { requireVerifiedDiscord } from "../middleware/auth.js";
+import { objectStorage } from "../object-storage.js";
+import { sourcePixelDataSchema } from "../submission-art.js";
 import { asyncRoute, requestHash, slugify } from "../utils.js";
 
 export const submissionsRouter = Router();
@@ -15,13 +18,28 @@ const submissionBody = z.object({
   description: z.string().trim().min(1).max(1200),
   generatorVersion: z.string().min(1).max(100),
   categories: z.array(z.nativeEnum(GeneratorCategory)).min(1).max(8),
-  pixelData: z.record(z.string(), z.unknown()),
+  pixelData: sourcePixelDataSchema,
   compatibility: z.record(z.string(), z.unknown()).optional(),
   mediaHash: z.string().regex(/^[a-f0-9]{64}$/i),
-  previewAssetUrl: z.string().url().max(150_000),
+  previewAssetUrl: z.string().url().max(150_000).refine(
+    (value) => value.startsWith("data:image/svg+xml"),
+    "The publish preview must be an SVG data URL.",
+  ),
   sourcePostUrl: z.string().url().max(2048).optional(),
 });
 const communityTraitCategories = new Set<GeneratorCategory>(["BACKGROUND", "EYES", "HATS", "SPECIAL"]);
+
+function decodeSvgDataUrl(value: string) {
+  const comma = value.indexOf(",");
+  if (comma === -1) throw new ApiError(422, "PREVIEW_INVALID", "The SVG preview could not be decoded.");
+  const metadata = value.slice(0, comma);
+  const payload = value.slice(comma + 1);
+  try {
+    return Buffer.from(metadata.includes(";base64") ? payload : decodeURIComponent(payload), metadata.includes(";base64") ? "base64" : "utf8");
+  } catch {
+    throw new ApiError(422, "PREVIEW_INVALID", "The SVG preview could not be decoded.");
+  }
+}
 
 submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async (req, res) => {
   const body = submissionBody.parse(req.body);
@@ -50,6 +68,15 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
     res.status(prior.responseCode ?? 201).json(prior.responseBody);
     return;
   }
+  const sourceBody = Buffer.from(`${JSON.stringify(body.pixelData, null, 2)}\n`, "utf8");
+  const sourceHash = createHash("sha256").update(sourceBody).digest("hex");
+  const previewBody = decodeSvgDataUrl(body.previewAssetUrl);
+  const calculatedMediaHash = createHash("sha256").update(previewBody).digest("hex");
+  if (calculatedMediaHash !== body.mediaHash.toLowerCase()) {
+    throw new ApiError(422, "MEDIA_HASH_MISMATCH", "The preview hash does not match the uploaded artwork.");
+  }
+  const pixelDataKey = `submissions/${userId}/${sourceHash}/source.json`;
+  const previewAssetKey = `submissions/${userId}/${calculatedMediaHash}/preview.svg`;
 
   const result = await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
@@ -84,6 +111,11 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
       throw new ApiError(429, "SUBMISSION_RESTRICTED", "Publishing is temporarily paused.", { expiresAt: restriction.expiresAt });
     }
 
+    await Promise.all([
+      objectStorage.putPrivate(pixelDataKey, sourceBody, "application/json; charset=utf-8"),
+      objectStorage.putPublic(previewAssetKey, previewBody, "image/svg+xml; charset=utf-8"),
+    ]);
+    const previewAssetUrl = objectStorage.publicUrl(previewAssetKey);
     const slug = `${slugify(body.title)}-${randomBytes(3).toString("hex")}`;
     const submission = await tx.submission.create({
       data: {
@@ -94,10 +126,19 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
         description: body.description,
         generatorVersion: body.generatorVersion,
         categories,
-        pixelData: body.pixelData as Prisma.InputJsonValue,
+        pixelData: {
+          schemaVersion: body.pixelData.schemaVersion ?? 1,
+          objectKey: pixelDataKey,
+          sha256: sourceHash,
+          byteLength: sourceBody.byteLength,
+        } as Prisma.InputJsonValue,
+        pixelDataKey,
+        sourceHash,
         compatibility: body.compatibility as Prisma.InputJsonValue | undefined,
-        mediaHash: body.mediaHash.toLowerCase(),
-        previewAssetUrl: body.previewAssetUrl,
+        mediaHash: calculatedMediaHash,
+        previewAssetUrl,
+        previewAssetKey,
+        storageProvider: objectStorage.provider,
         sourcePostUrl: body.sourcePostUrl,
         statusEvents: { create: { toStatus: "PENDING", actorId: userId, note: "Published by creator" } },
       },
