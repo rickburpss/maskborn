@@ -1,0 +1,450 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum WalletChain {
+  EVM
+  SOLANA
+}
+
+enum VerificationState {
+  UNVERIFIED
+  PENDING_MANUAL
+  VERIFIED
+  FAILED
+}
+
+enum ApplicationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  WITHDRAWN
+}
+
+enum SubmissionKind {
+  ONE_OF_ONE
+  TRAIT_EXTENSION
+}
+
+enum GeneratorCategory {
+  BACKGROUND
+  FUR
+  EYES
+  EARS
+  TAILS
+  MASKS
+  HATS
+  SPECIAL
+}
+
+enum SubmissionStatus {
+  PENDING
+  REVIEWING
+  ACCEPTED
+  REJECTED
+  GALLERY_ADDED
+  WITHDRAWN
+}
+
+enum VoteValue {
+  UP
+  DOWN
+}
+
+enum RestrictionType {
+  VOTE
+  SUBMISSION
+  ACCOUNT
+}
+
+enum GalleryEntryKind {
+  ONE_OF_ONE
+  TRAIT
+}
+
+enum PublicationState {
+  GALLERY_ONLY
+  ONCHAIN_EXTENSION
+}
+
+enum AccrualStatus {
+  ACCRUED
+  APPROVED
+  PAID
+  VOID
+}
+
+enum PayoutStatus {
+  PENDING
+  SUBMITTED
+  CONFIRMED
+  FAILED
+}
+
+model User {
+  id                  String                   @id @default(cuid())
+  role                Role                     @default(USER)
+  displayName         String?
+  avatarUrl           String?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  socialAccounts      SocialAccount[]
+  sessions            Session[]
+  wallets             Wallet[]
+  applications        Application[]
+  drafts              Draft[]
+  submissions         Submission[]
+  votes               Vote[]
+  voteEvents          VoteEvent[]
+  restrictions        VoteRestriction[]
+  riskEvents          RiskEvent[]
+  statusEventsAuthored SubmissionStatusEvent[] @relation("StatusEventActor")
+  adminAudits         AdminAuditLog[]          @relation("AdminAuditActor")
+  idempotencyRecords  IdempotencyRecord[]
+  payouts             Payout[]
+}
+
+model SocialAccount {
+  id                 String            @id @default(cuid())
+  userId             String
+  provider           String
+  providerAccountId  String
+  username           String
+  verificationState  VerificationState @default(UNVERIFIED)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([provider, username])
+  @@index([userId])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Wallet {
+  id         String      @id @default(cuid())
+  userId     String
+  chain      WalletChain
+  address    String
+  normalized String
+  isPrimary  Boolean     @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications Application[]
+  feeShares    FeeShare[]
+  payouts      Payout[]
+
+  @@unique([chain, normalized])
+  @@index([userId])
+}
+
+model Application {
+  id                    String             @id @default(cuid())
+  userId                String            @unique
+  walletId              String
+  quotePostUrl          String
+  quotePostId           String?            @unique
+  likedState            VerificationState  @default(PENDING_MANUAL)
+  repostedState         VerificationState  @default(PENDING_MANUAL)
+  commentedState        VerificationState  @default(PENDING_MANUAL)
+  quoteOwnershipState   VerificationState  @default(PENDING_MANUAL)
+  builderTraits         Json
+  previewAssetUrl       String?
+  status                ApplicationStatus  @default(PENDING)
+  submittedAt           DateTime           @default(now())
+  reviewedAt            DateTime?
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet                Wallet             @relation(fields: [walletId], references: [id])
+
+  @@unique([quotePostUrl])
+  @@index([userId, submittedAt])
+  @@index([status, submittedAt])
+}
+
+model Draft {
+  id              String         @id @default(cuid())
+  userId          String
+  kind            SubmissionKind
+  title           String
+  schemaVersion   Int            @default(1)
+  version         Int            @default(1)
+  generatorVersion String
+  payload         Json
+  previewAssetUrl String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revisions       DraftRevision[]
+
+  @@index([userId, updatedAt])
+}
+
+model DraftRevision {
+  id        String   @id @default(cuid())
+  draftId   String
+  version   Int
+  payload   Json
+  createdAt DateTime @default(now())
+  draft     Draft    @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  @@unique([draftId, version])
+}
+
+model Submission {
+  id               String                    @id @default(cuid())
+  slug             String                    @unique
+  userId           String
+  kind             SubmissionKind
+  title            String
+  description      String
+  generatorVersion String
+  categories       GeneratorCategory[]
+  pixelData        Json
+  compatibility    Json?
+  mediaHash        String
+  previewAssetUrl  String
+  sourcePostUrl    String?
+  status           SubmissionStatus          @default(PENDING)
+  publishedAt      DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  upvoteCount      Int                       @default(0)
+  downvoteCount    Int                       @default(0)
+  user             User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes            Vote[]
+  voteEvents       VoteEvent[]
+  statusEvents     SubmissionStatusEvent[]
+  galleryEntry     GalleryEntry?
+
+  @@unique([userId, mediaHash])
+  @@index([status, publishedAt])
+  @@index([kind, publishedAt])
+  @@index([userId, kind, status])
+}
+
+model SubmissionStatusEvent {
+  id           String           @id @default(cuid())
+  submissionId String
+  actorId      String?
+  fromStatus   SubmissionStatus?
+  toStatus     SubmissionStatus
+  note         String?
+  createdAt    DateTime         @default(now())
+  submission   Submission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  actor        User?            @relation("StatusEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([submissionId, createdAt])
+}
+
+model Vote {
+  id           String     @id @default(cuid())
+  submissionId String
+  userId       String
+  value        VoteValue
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, userId])
+  @@index([userId, updatedAt])
+}
+
+model VoteEvent {
+  id           String      @id @default(cuid())
+  submissionId String
+  userId       String
+  fromValue    VoteValue?
+  toValue      VoteValue?
+  signalHash   String
+  requestId    String
+  createdAt    DateTime    @default(now())
+  submission   Submission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([signalHash, createdAt])
+}
+
+model VoteRestriction {
+  id          String          @id @default(cuid())
+  userId      String
+  type        RestrictionType @default(VOTE)
+  reasonCode  String
+  note        String?
+  startsAt    DateTime        @default(now())
+  expiresAt   DateTime
+  liftedAt    DateTime?
+  createdAt   DateTime        @default(now())
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, expiresAt])
+}
+
+model RiskEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  signalHash String
+  eventType  String
+  score      Int
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([signalHash, createdAt])
+  @@index([userId, createdAt])
+}
+
+model GalleryEntry {
+  id               String             @id @default(cuid())
+  submissionId     String             @unique
+  kind             GalleryEntryKind
+  publicationState PublicationState   @default(GALLERY_ONLY)
+  categories       GeneratorCategory[]
+  displayOrder     Int                @default(0)
+  isVisible        Boolean            @default(true)
+  tokenChainId     Int?
+  tokenContract    String?
+  tokenId          String?
+  metadataUri      String?
+  addedAt          DateTime           @default(now())
+  submission       Submission         @relation(fields: [submissionId], references: [id], onDelete: Restrict)
+  feeShare         FeeShare?
+
+  @@unique([tokenChainId, tokenContract, tokenId])
+  @@index([isVisible, displayOrder])
+}
+
+model FeeShare {
+  id             String   @id @default(cuid())
+  galleryEntryId String   @unique
+  walletId       String
+  basisPoints    Int
+  startsAt       DateTime @default(now())
+  endsAt         DateTime?
+  galleryEntry   GalleryEntry @relation(fields: [galleryEntryId], references: [id], onDelete: Restrict)
+  wallet         Wallet       @relation(fields: [walletId], references: [id], onDelete: Restrict)
+  accruals       CreatorAccrual[]
+
+  @@index([walletId])
+}
+
+model TradeFeeEvent {
+  id              String   @id @default(cuid())
+  chainId         Int
+  txHash          String
+  logIndex        Int
+  tokenContract   String
+  tokenId         String
+  currency        String
+  grossAmount     Decimal  @db.Decimal(78, 0)
+  platformFee     Decimal  @db.Decimal(78, 0)
+  blockNumber     BigInt
+  occurredAt      DateTime?
+  indexedAt       DateTime @default(now())
+  accruals        CreatorAccrual[]
+
+  @@unique([chainId, txHash, logIndex])
+  @@index([tokenContract, tokenId, blockNumber])
+}
+
+model CreatorAccrual {
+  id              String        @id @default(cuid())
+  tradeFeeEventId String
+  feeShareId      String
+  amount          Decimal       @db.Decimal(78, 0)
+  status          AccrualStatus @default(ACCRUED)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  tradeFeeEvent   TradeFeeEvent @relation(fields: [tradeFeeEventId], references: [id], onDelete: Restrict)
+  feeShare        FeeShare      @relation(fields: [feeShareId], references: [id], onDelete: Restrict)
+  payoutItems     PayoutItem[]
+
+  @@unique([tradeFeeEventId, feeShareId])
+  @@index([feeShareId, status])
+}
+
+model Payout {
+  id          String       @id @default(cuid())
+  userId      String
+  walletId    String
+  chainId     Int
+  currency    String
+  totalAmount Decimal      @db.Decimal(78, 0)
+  status      PayoutStatus @default(PENDING)
+  txHash      String?
+  failureCode String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  wallet      Wallet       @relation(fields: [walletId], references: [id], onDelete: Restrict)
+  items       PayoutItem[]
+
+  @@index([userId, status])
+}
+
+model PayoutItem {
+  payoutId  String
+  accrualId String
+  payout    Payout         @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+  accrual   CreatorAccrual @relation(fields: [accrualId], references: [id], onDelete: Restrict)
+
+  @@id([payoutId, accrualId])
+  @@unique([accrualId])
+}
+
+model IdempotencyRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  scope        String
+  key          String
+  requestHash  String
+  responseCode Int?
+  responseBody Json?
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scope, key])
+  @@index([expiresAt])
+}
+
+model AdminAuditLog {
+  id           String   @id @default(cuid())
+  actorId      String
+  action       String
+  targetType   String
+  targetId     String
+  before       Json?
+  after        Json?
+  reason       String?
+  requestId    String
+  createdAt    DateTime @default(now())
+  actor        User     @relation("AdminAuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([targetType, targetId, createdAt])
+  @@index([actorId, createdAt])
+}

@@ -1,0 +1,8 @@
+{
+  "name": "maskborn-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:collection": "node scripts/sync-collection.mjs"
+  }
+}
