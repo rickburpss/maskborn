@@ -106,3 +106,19 @@
   Prisma 7 client generation, and Prisma schema validation.
 - The new unique application-per-user database constraint must be applied to the target
   Neon database with the normal Prisma deployment command before production rollout.
+
+## 2026-07-25 — Generated library, carousel, PNG downloads, and color picker
+
+- Kept Red Panda as the only visible pre-launch 1/1 on the public-facing collection
+  presentation and removed the separate 1/1 library from the Collection page.
+- Expanded the home carousel to Red Panda plus all 16 normal generated fixture masks.
+- Made carousel dimensions fluid on desktop and mobile and hid the selected-card
+  metadata on narrow screens so it no longer covers the artwork.
+- Made the normal generated collection library use every fixture with an adaptive
+  desktop grid and a compact two-column mobile grid.
+- Changed both Apply builder downloads and Draw studio downloads to crisp 1024×1024
+  PNG files with pixel smoothing disabled. Draw still publishes its structured pixel
+  layers and SVG preview to the backend for generator review.
+- Expanded Draw to 16 common colors and added a native custom color picker with the
+  active hexadecimal value, allowing creators to select or mix any color.
+- Frontend TypeScript, ESLint, 16 renderer tests, and the production build all passed.

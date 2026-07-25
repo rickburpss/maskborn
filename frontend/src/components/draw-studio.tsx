@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Download, Eraser, Eye, EyeOff, Plus, RotateCcw, Save, Send, Trash2 } from "lucide-react";
-import Image from "next/image";
+import NextImage from "next/image";
 import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import collection from "@/generated/collection.json";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -10,7 +10,12 @@ import { apiFetch } from "@/lib/api";
 import { composeMaskbornDataUrl, type TraitSelection } from "@/lib/maskborn-renderer";
 import { type AccessoryKind, type DraftLayer, useDraftStore } from "@/store/draft";
 
-const palette = ["#1A1815", "#EDEAE2", "#F2B441", "#D85B45", "#5A8F74", "#5B67A5", "#A45488", "#8B633F"];
+const palette = [
+  "#1A1815", "#EDEAE2", "#FFFFFF", "#8A8A82",
+  "#F2B441", "#F06A32", "#D85B45", "#B82E38",
+  "#E881A6", "#A45488", "#7356A8", "#5B67A5",
+  "#3D91C7", "#57B8A6", "#5A8F74", "#8B633F",
+];
 const accessoryKinds: AccessoryKind[] = ["Eyes", "Hats", "Special"];
 const earCategory = collection.categories.find((category) => category.name === "Ears")!;
 
@@ -101,9 +106,20 @@ export function DrawStudio() {
 
   const download = async () => {
     const svg = buildSvg(await loadBaseMarkup());
+    const artwork = new Image();
+    artwork.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    await artwork.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.imageSmoothingEnabled = false;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(artwork, 0, 0, canvas.width, canvas.height);
     const link = document.createElement("a");
-    link.href = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-    link.download = `${draft.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "maskborn"}.svg`;
+    link.href = canvas.toDataURL("image/png");
+    link.download = `${draft.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "maskborn"}.png`;
     link.click();
   };
 
@@ -216,6 +232,11 @@ export function DrawStudio() {
                 />
               ))}
             </div>
+            <label className="custom-color">
+              <span>Mix your own</span>
+              <input type="color" value={draft.color} onChange={(event) => draft.setColor(event.target.value.toUpperCase())} />
+              <b>{draft.color}</b>
+            </label>
           </aside>
 
           <div className="pixel-canvas-wrap">
@@ -273,7 +294,7 @@ export function DrawStudio() {
               return (
                 <article key={ear.name}>
                   <div className="compatibility-art">
-                    <Image src={composeMaskbornDataUrl(selection)} alt="" fill unoptimized />
+                    <NextImage src={composeMaskbornDataUrl(selection)} alt="" fill unoptimized />
                     <svg viewBox="0 0 32 32" shapeRendering="crispEdges"><PixelLayers layers={draft.layers} /></svg>
                   </div>
                   <span>Ears</span><h3>{ear.name}</h3>

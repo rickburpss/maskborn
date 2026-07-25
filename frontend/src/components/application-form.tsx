@@ -85,10 +85,21 @@ export function ApplicationForm() {
     }
   };
 
-  const downloadBuild = () => {
+  const downloadBuild = async () => {
+    const artwork = new Image();
+    artwork.src = preview;
+    await artwork.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.imageSmoothingEnabled = false;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(artwork, 0, 0, canvas.width, canvas.height);
     const link = document.createElement("a");
-    link.href = preview;
-    link.download = "maskborn-build.svg";
+    link.href = canvas.toDataURL("image/png");
+    link.download = "maskborn-build.png";
     link.click();
   };
 

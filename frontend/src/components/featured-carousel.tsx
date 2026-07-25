@@ -20,11 +20,8 @@ export function FeaturedCarousel() {
   const [interacting, setInteracting] = useState(false);
   const reduceMotion = useReducedMotion();
   const featured = useMemo(() => {
-    const legends = ["red-panda", "skunk"].map((slug) => {
-      const item = collection.legends.find((legend) => legend.slug === slug)!;
-      return { ...item, kind: "1/1" as const };
-    });
-    const generated = collection.fixtures.slice(0, 6).map((fixture) => ({
+    const redPanda = collection.legends.find((legend) => legend.slug === "red-panda")!;
+    const generated = collection.fixtures.map((fixture) => ({
       index: fixture.id,
       name: `Generated #${String(fixture.id).padStart(4, "0")}`,
       slug: `generated-${fixture.id}`,
@@ -32,7 +29,7 @@ export function FeaturedCarousel() {
       note: "A normal generator combination.",
       kind: "Generated" as const,
     }));
-    return [...legends, ...generated];
+    return [{ ...redPanda, kind: "1/1" as const }, ...generated];
   }, []);
   const count = featured.length;
 
@@ -81,7 +78,7 @@ export function FeaturedCarousel() {
               transition={{ type: "spring", stiffness: 220, damping: 28, mass: 0.9 }}
               aria-hidden={!visible}
             >
-              <Link href={artwork.kind === "1/1" ? `/collection#${artwork.slug}` : "/collection"} tabIndex={offset === 0 ? 0 : -1}>
+              <Link href="/collection" tabIndex={offset === 0 ? 0 : -1}>
                 <PixelArtwork source={artwork.preview} label={artwork.name} />
                 <AnimatePresence>
                   {offset === 0 && (
