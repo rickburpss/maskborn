@@ -12,6 +12,7 @@ import type { Artwork, VoteValue } from "@/lib/types";
 export function ArtCard({ artwork, index }: { artwork: Artwork; index: number }) {
   const [vote, setVote] = useState<VoteValue>(null);
   const [shared, setShared] = useState(false);
+  const [activePreview, setActivePreview] = useState<string | null>(null);
   const session = useCurrentUser();
   const discordVerified = session.data?.user.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
@@ -19,6 +20,10 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
 
   const upvotes = artwork.upvotes + (vote === "up" ? 1 : 0);
   const downvotes = artwork.downvotes + (vote === "down" ? 1 : 0);
+  const selectedVariant = artwork.previewVariants?.find((variant) => variant.id === activePreview);
+  const defaultVariant = artwork.previewVariants?.reduce((largest, variant) =>
+    variant.categories.length > largest.categories.length ? variant : largest);
+  const previewSource = selectedVariant?.url ?? artwork.previewAssetUrl;
 
   const applyVote = async (next: Exclude<VoteValue, null>) => {
     if (!discordVerified) {
@@ -60,12 +65,30 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
       transition={{ delay: Math.min(index * 0.05, 0.2) }}
     >
       <Link href={`/art/${artwork.slug}`} className="art-image-link">
-        <PixelArtwork variant={artwork.variant} source={artwork.previewAssetUrl} label={artwork.title} />
+        <PixelArtwork variant={artwork.variant} source={previewSource} label={`${artwork.title}${selectedVariant ? ` — ${selectedVariant.label}` : ""}`} />
         <span className="art-type">{artwork.type}</span>
         <span className={`status-tag ${artwork.status === "Added to gallery" ? "accepted" : ""}`}>
           {artwork.status}
         </span>
       </Link>
+      {artwork.previewVariants && artwork.previewVariants.length > 0 && (
+        <div className="trait-preview-controls" aria-label={`Preview layers for ${artwork.title}`}>
+          <span>View traits</span>
+          <div>
+            {artwork.previewVariants.map((variant) => (
+              <button
+                type="button"
+                key={variant.id}
+                className={(activePreview === variant.id || (!activePreview && defaultVariant?.id === variant.id)) ? "active" : ""}
+                aria-pressed={activePreview === variant.id || (!activePreview && defaultVariant?.id === variant.id)}
+                onClick={() => setActivePreview(variant.id)}
+              >
+                {variant.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="art-card-body">
         <div className="card-kicker"><span>#{String(index + 1).padStart(3, "0")}</span><span>{artwork.submittedAt}</span></div>
         <Link href={`/art/${artwork.slug}`}><h3>{artwork.title}</h3></Link>

@@ -24,6 +24,7 @@ export function LatestCreations({ limit }: { limit?: number }) {
       categories: string[];
       status: string;
       previewAssetUrl: string;
+      previewVariants: Array<{ id: string; label: string; categories: string[]; url: string }> | null;
       upvoteCount: number;
       downvoteCount: number;
       publishedAt: string;
@@ -50,6 +51,7 @@ export function LatestCreations({ limit }: { limit?: number }) {
         downvotes: item.downvoteCount,
         submittedAt: new Date(item.publishedAt).toLocaleDateString(),
         previewAssetUrl: item.previewAssetUrl,
+        previewVariants: item.kind === "TRAIT_EXTENSION" ? (item.previewVariants ?? []) : [],
       };
     });
   }, [feed.data]);

@@ -100,6 +100,7 @@ export type SubmissionCountAggregateOutputType = {
   mediaHash: number
   previewAssetUrl: number
   previewAssetKey: number
+  previewVariants: number
   storageProvider: number
   canonicalDataKey: number
   canonicalHash: number
@@ -187,6 +188,7 @@ export type SubmissionCountAggregateInputType = {
   mediaHash?: true
   previewAssetUrl?: true
   previewAssetKey?: true
+  previewVariants?: true
   storageProvider?: true
   canonicalDataKey?: true
   canonicalHash?: true
@@ -301,6 +303,7 @@ export type SubmissionGroupByOutputType = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey: string | null
+  previewVariants: runtime.JsonValue | null
   storageProvider: string
   canonicalDataKey: string | null
   canonicalHash: string | null
@@ -351,6 +354,7 @@ export type SubmissionWhereInput = {
   mediaHash?: Prisma.StringFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringFilter<"Submission"> | string
   previewAssetKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  previewVariants?: Prisma.JsonNullableFilter<"Submission">
   storageProvider?: Prisma.StringFilter<"Submission"> | string
   canonicalDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
   canonicalHash?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -383,6 +387,7 @@ export type SubmissionOrderByWithRelationInput = {
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
   previewAssetKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  previewVariants?: Prisma.SortOrderInput | Prisma.SortOrder
   storageProvider?: Prisma.SortOrder
   canonicalDataKey?: Prisma.SortOrderInput | Prisma.SortOrder
   canonicalHash?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -419,6 +424,7 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   compatibility?: Prisma.JsonNullableFilter<"Submission">
   mediaHash?: Prisma.StringFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringFilter<"Submission"> | string
+  previewVariants?: Prisma.JsonNullableFilter<"Submission">
   storageProvider?: Prisma.StringFilter<"Submission"> | string
   canonicalDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
   canonicalHash?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -451,6 +457,7 @@ export type SubmissionOrderByWithAggregationInput = {
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
   previewAssetKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  previewVariants?: Prisma.SortOrderInput | Prisma.SortOrder
   storageProvider?: Prisma.SortOrder
   canonicalDataKey?: Prisma.SortOrderInput | Prisma.SortOrder
   canonicalHash?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -486,6 +493,7 @@ export type SubmissionScalarWhereWithAggregatesInput = {
   mediaHash?: Prisma.StringWithAggregatesFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringWithAggregatesFilter<"Submission"> | string
   previewAssetKey?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
+  previewVariants?: Prisma.JsonNullableWithAggregatesFilter<"Submission">
   storageProvider?: Prisma.StringWithAggregatesFilter<"Submission"> | string
   canonicalDataKey?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
   canonicalHash?: Prisma.StringNullableWithAggregatesFilter<"Submission"> | string | null
@@ -512,6 +520,7 @@ export type SubmissionCreateInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -544,6 +553,7 @@ export type SubmissionUncheckedCreateInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -574,6 +584,7 @@ export type SubmissionUpdateInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -606,6 +617,7 @@ export type SubmissionUncheckedUpdateInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -637,6 +649,7 @@ export type SubmissionCreateManyInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -663,6 +676,7 @@ export type SubmissionUpdateManyMutationInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -690,6 +704,7 @@ export type SubmissionUncheckedUpdateManyInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -740,6 +755,7 @@ export type SubmissionCountOrderByAggregateInput = {
   mediaHash?: Prisma.SortOrder
   previewAssetUrl?: Prisma.SortOrder
   previewAssetKey?: Prisma.SortOrder
+  previewVariants?: Prisma.SortOrder
   storageProvider?: Prisma.SortOrder
   canonicalDataKey?: Prisma.SortOrder
   canonicalHash?: Prisma.SortOrder
@@ -940,6 +956,7 @@ export type SubmissionCreateWithoutUserInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -970,6 +987,7 @@ export type SubmissionUncheckedCreateWithoutUserInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1030,6 +1048,7 @@ export type SubmissionScalarWhereInput = {
   mediaHash?: Prisma.StringFilter<"Submission"> | string
   previewAssetUrl?: Prisma.StringFilter<"Submission"> | string
   previewAssetKey?: Prisma.StringNullableFilter<"Submission"> | string | null
+  previewVariants?: Prisma.JsonNullableFilter<"Submission">
   storageProvider?: Prisma.StringFilter<"Submission"> | string
   canonicalDataKey?: Prisma.StringNullableFilter<"Submission"> | string | null
   canonicalHash?: Prisma.StringNullableFilter<"Submission"> | string | null
@@ -1056,6 +1075,7 @@ export type SubmissionCreateWithoutStatusEventsInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1087,6 +1107,7 @@ export type SubmissionUncheckedCreateWithoutStatusEventsInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1132,6 +1153,7 @@ export type SubmissionUpdateWithoutStatusEventsInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1163,6 +1185,7 @@ export type SubmissionUncheckedUpdateWithoutStatusEventsInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1192,6 +1215,7 @@ export type SubmissionCreateWithoutVotesInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1223,6 +1247,7 @@ export type SubmissionUncheckedCreateWithoutVotesInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1268,6 +1293,7 @@ export type SubmissionUpdateWithoutVotesInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1299,6 +1325,7 @@ export type SubmissionUncheckedUpdateWithoutVotesInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1328,6 +1355,7 @@ export type SubmissionCreateWithoutVoteEventsInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1359,6 +1387,7 @@ export type SubmissionUncheckedCreateWithoutVoteEventsInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1404,6 +1433,7 @@ export type SubmissionUpdateWithoutVoteEventsInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1435,6 +1465,7 @@ export type SubmissionUncheckedUpdateWithoutVoteEventsInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1464,6 +1495,7 @@ export type SubmissionCreateWithoutGalleryEntryInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1495,6 +1527,7 @@ export type SubmissionUncheckedCreateWithoutGalleryEntryInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1540,6 +1573,7 @@ export type SubmissionUpdateWithoutGalleryEntryInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1571,6 +1605,7 @@ export type SubmissionUncheckedUpdateWithoutGalleryEntryInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1600,6 +1635,7 @@ export type SubmissionCreateManyUserInput = {
   mediaHash: string
   previewAssetUrl: string
   previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: string
   canonicalDataKey?: string | null
   canonicalHash?: string | null
@@ -1626,6 +1662,7 @@ export type SubmissionUpdateWithoutUserInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1656,6 +1693,7 @@ export type SubmissionUncheckedUpdateWithoutUserInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1686,6 +1724,7 @@ export type SubmissionUncheckedUpdateManyWithoutUserInput = {
   mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
   previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
   canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1762,6 +1801,7 @@ export type SubmissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   mediaHash?: boolean
   previewAssetUrl?: boolean
   previewAssetKey?: boolean
+  previewVariants?: boolean
   storageProvider?: boolean
   canonicalDataKey?: boolean
   canonicalHash?: boolean
@@ -1795,6 +1835,7 @@ export type SubmissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   mediaHash?: boolean
   previewAssetUrl?: boolean
   previewAssetKey?: boolean
+  previewVariants?: boolean
   storageProvider?: boolean
   canonicalDataKey?: boolean
   canonicalHash?: boolean
@@ -1823,6 +1864,7 @@ export type SubmissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   mediaHash?: boolean
   previewAssetUrl?: boolean
   previewAssetKey?: boolean
+  previewVariants?: boolean
   storageProvider?: boolean
   canonicalDataKey?: boolean
   canonicalHash?: boolean
@@ -1851,6 +1893,7 @@ export type SubmissionSelectScalar = {
   mediaHash?: boolean
   previewAssetUrl?: boolean
   previewAssetKey?: boolean
+  previewVariants?: boolean
   storageProvider?: boolean
   canonicalDataKey?: boolean
   canonicalHash?: boolean
@@ -1862,7 +1905,7 @@ export type SubmissionSelectScalar = {
   downvoteCount?: boolean
 }
 
-export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "userId" | "kind" | "title" | "description" | "generatorVersion" | "categories" | "pixelData" | "pixelDataKey" | "sourceHash" | "compatibility" | "mediaHash" | "previewAssetUrl" | "previewAssetKey" | "storageProvider" | "canonicalDataKey" | "canonicalHash" | "sourcePostUrl" | "status" | "publishedAt" | "updatedAt" | "upvoteCount" | "downvoteCount", ExtArgs["result"]["submission"]>
+export type SubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "userId" | "kind" | "title" | "description" | "generatorVersion" | "categories" | "pixelData" | "pixelDataKey" | "sourceHash" | "compatibility" | "mediaHash" | "previewAssetUrl" | "previewAssetKey" | "previewVariants" | "storageProvider" | "canonicalDataKey" | "canonicalHash" | "sourcePostUrl" | "status" | "publishedAt" | "updatedAt" | "upvoteCount" | "downvoteCount", ExtArgs["result"]["submission"]>
 export type SubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   votes?: boolean | Prisma.Submission$votesArgs<ExtArgs>
@@ -1903,6 +1946,7 @@ export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     mediaHash: string
     previewAssetUrl: string
     previewAssetKey: string | null
+    previewVariants: runtime.JsonValue | null
     storageProvider: string
     canonicalDataKey: string | null
     canonicalHash: string | null
@@ -2355,6 +2399,7 @@ export interface SubmissionFieldRefs {
   readonly mediaHash: Prisma.FieldRef<"Submission", 'String'>
   readonly previewAssetUrl: Prisma.FieldRef<"Submission", 'String'>
   readonly previewAssetKey: Prisma.FieldRef<"Submission", 'String'>
+  readonly previewVariants: Prisma.FieldRef<"Submission", 'Json'>
   readonly storageProvider: Prisma.FieldRef<"Submission", 'String'>
   readonly canonicalDataKey: Prisma.FieldRef<"Submission", 'String'>
   readonly canonicalHash: Prisma.FieldRef<"Submission", 'String'>

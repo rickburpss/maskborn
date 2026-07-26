@@ -1,5 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { GeneratorCategory, Prisma, SubmissionKind } from "../generated/prisma/client.js";
 import { Router } from "express";
 import { z } from "zod";
@@ -7,7 +9,7 @@ import { db } from "../db.js";
 import { ApiError } from "../errors.js";
 import { requireVerifiedDiscord } from "../middleware/auth.js";
 import { objectStorage } from "../object-storage.js";
-import { sourcePixelDataSchema } from "../submission-art.js";
+import { createTraitPreviewVariants, sourcePixelDataSchema } from "../submission-art.js";
 import { asyncRoute, requestHash, slugify } from "../utils.js";
 
 export const submissionsRouter = Router();
@@ -28,6 +30,13 @@ const submissionBody = z.object({
   sourcePostUrl: z.string().url().max(2048).optional(),
 });
 const communityTraitCategories = new Set<GeneratorCategory>(["BACKGROUND", "EYES", "HATS", "SPECIAL"]);
+let baseMarkupPromise: Promise<string> | null = null;
+
+function getBaseMarkup() {
+  baseMarkupPromise ??= readFile(path.resolve("assets", "base.svg"), "utf8")
+    .then((source) => source.replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, ""));
+  return baseMarkupPromise;
+}
 
 function decodeSvgDataUrl(value: string) {
   const comma = value.indexOf(",");
@@ -115,6 +124,19 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
       objectStorage.putPrivate(pixelDataKey, sourceBody, "application/json; charset=utf-8"),
       objectStorage.putPublic(previewAssetKey, previewBody, "image/svg+xml; charset=utf-8"),
     ]);
+    const previewVariants = body.kind === "TRAIT_EXTENSION"
+      ? createTraitPreviewVariants(body.pixelData, await getBaseMarkup())
+      : [];
+    const storedVariants = await Promise.all(previewVariants.map(async (variant) => {
+      const key = `submissions/${userId}/${sourceHash}/variants/${variant.id}.svg`;
+      await objectStorage.putPublic(key, Buffer.from(variant.svg, "utf8"), "image/svg+xml; charset=utf-8");
+      return {
+        id: variant.id,
+        label: variant.label,
+        categories: variant.categories,
+        url: objectStorage.publicUrl(key),
+      };
+    }));
     const previewAssetUrl = objectStorage.publicUrl(previewAssetKey);
     const slug = `${slugify(body.title)}-${randomBytes(3).toString("hex")}`;
     const submission = await tx.submission.create({
@@ -138,6 +160,7 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
         mediaHash: calculatedMediaHash,
         previewAssetUrl,
         previewAssetKey,
+        previewVariants: storedVariants as Prisma.InputJsonValue,
         storageProvider: objectStorage.provider,
         sourcePostUrl: body.sourcePostUrl,
         statusEvents: { create: { toStatus: "PENDING", actorId: userId, note: "Published by creator" } },

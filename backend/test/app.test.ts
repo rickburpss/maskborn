@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
-import { canonicalizePixelData, sourcePixelDataSchema } from "../src/submission-art.js";
+import { canonicalizePixelData, createTraitPreviewVariants, sourcePixelDataSchema } from "../src/submission-art.js";
 
 process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/maskborn";
 process.env.DATABASE_URL_UNPOOLED = process.env.DATABASE_URL;
@@ -68,5 +68,21 @@ describe("submission artwork canonicalization", () => {
       { kind: "Background", stage: 0, pixels: [[8, 4, "#F2B441"]] },
       { kind: "Eyes", stage: 1, pixels: [[2, 1, "#1A1815"], [4, 9, "#D85B45"]] },
     ]);
+  });
+
+  it("builds individual, combined, and all-trait previews in generator order", () => {
+    const source = sourcePixelDataSchema.parse({
+      schemaVersion: 2,
+      startBlank: false,
+      layers: [
+        { id: "background", kind: "Background", visible: true, pixels: [{ x: 1, y: 1, color: "#F2B441" }] },
+        { id: "eyes", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#1A1815" }] },
+      ],
+    });
+    const variants = createTraitPreviewVariants(source, '<g id="maskborn-base"/>');
+    expect(variants.map((variant) => variant.label)).toEqual(["Background", "Eyes", "All"]);
+    const all = variants[2]!.svg;
+    expect(all.indexOf('x="1"')).toBeLessThan(all.indexOf("maskborn-base"));
+    expect(all.indexOf("maskborn-base")).toBeLessThan(all.indexOf('x="4"'));
   });
 });

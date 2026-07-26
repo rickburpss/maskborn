@@ -190,3 +190,55 @@
 - Added `NEXT_PUBLIC_SITE_URL` to the frontend environment example so production social
   image URLs resolve against the deployed website rather than localhost.
 - Frontend TypeScript and the production build passed.
+
+## 2026-07-26 — Discord sign-in, Render wake flow, and trait previews
+
+- Changed Discord OAuth from a one-time verification step into persistent account
+  recovery: a Discord ID already linked to a Mask Born Order profile now signs back
+  into that exact profile and receives a fresh one-year session.
+- Kept first registration ordered: a new Discord identity cannot create an orphaned
+  Discord-only account and the Connect modal requires the X username to be saved first.
+- Added a same-origin Next.js `/api/*` proxy for production. Render should set
+  `NEXT_PUBLIC_API_URL` to the frontend URL, `BACKEND_URL` to the backend URL, and use
+  the frontend `/api/auth/discord/callback` URL in Discord OAuth.
+- Added a branded `/connect/discord` wake screen that polls the backend health endpoint
+  while a free Render instance wakes, then automatically continues to Discord.
+- Added stored preview variants for accessory submissions. Publishing Background,
+  Eyes, Hats, and/or Special now creates every useful individual and combined preview
+  over the canonical Maskborn base and stores the public variant URLs on the
+  submission. One-of-one posts never receive these controls.
+- Added responsive, horizontally scrollable trait boxes under public and profile
+  creation cards. Creators and visitors can inspect a single submitted trait,
+  combinations, or all submitted traits.
+- Replaced the profile's mock submission rows with its real published creation cards
+  and real vote totals.
+- Added `docs/RENDER_SETUP.md` and corrected `docs/DISCORD_SETUP.md` for the proxy and
+  production callback arrangement.
+- Verification passed: Prisma validation, backend TypeScript/build and 7 tests;
+  frontend TypeScript, ESLint, production build, and 16 tests.
+
+## 2026-07-26 — Returning-member Discord login
+
+- Added a distinct returning-member panel inside the Connect modal with “Log in with
+  Discord” for profiles that have already completed registration and linked Discord.
+- Kept the numbered X username, Discord verification, and wallet flow below it for new
+  members, separated by a compact “New here?” divider.
+- The returning login uses the same branded Render wake route and only recovers an
+  existing linked Discord profile; an unknown Discord identity cannot bypass the
+  registration flow.
+- Added responsive modal styling for the new panel. Frontend TypeScript, ESLint, all
+  16 tests, and the production build passed.
+
+## 2026-07-26 — Compact account chooser and rounded favicon
+
+- Replaced the tall returning-member section with a compact initial Connect view
+  containing only two choices: “Have an account” and “Create account.”
+- “Have an account” opens the existing Discord recovery login immediately. “Create
+  account” reveals the normal X username, Discord, and wallet registration steps, with
+  a small control to return to the account choices.
+- On mobile the two choices stack into short rows, keeping the initial modal well
+  within a small viewport.
+- Preserved the original Circle artwork and created `/mbo-icon.svg` as a metadata-only
+  copy clipped to rounded corners. The collection's source artwork remains square and
+  unchanged.
+- Frontend TypeScript, ESLint, all 16 tests, and the production build passed.

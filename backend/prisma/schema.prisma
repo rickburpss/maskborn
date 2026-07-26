@@ -230,6 +230,7 @@ model Submission {
   mediaHash        String
   previewAssetUrl  String
   previewAssetKey  String?                   @unique
+  previewVariants  Json?
   storageProvider  String                    @default("DATABASE")
   canonicalDataKey String?
   canonicalHash    String?

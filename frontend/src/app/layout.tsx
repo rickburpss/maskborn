@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   title: { default: "Mask Born Order", template: "%s — Mask Born Order" },
   description: "A pre-launch pixel collection shaped with its community.",
   icons: {
-    icon: [{ url: "/collection/legends/13-circle.svg", type: "image/svg+xml" }],
-    shortcut: "/collection/legends/13-circle.svg",
+    icon: [{ url: "/mbo-icon.svg", type: "image/svg+xml" }],
+    shortcut: "/mbo-icon.svg",
     apple: "/dps.png",
   },
   openGraph: {

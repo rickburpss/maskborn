@@ -1,12 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Check, Copy, LogOut, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, LogIn, LogOut, UserPlus, X } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { API_URL, apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { useSessionStore } from "@/store/session";
 
 const walletPattern = /^(0x[a-fA-F0-9]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})$/;
@@ -29,6 +29,15 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
   const [walletInput, setWalletInput] = useState(wallet ?? "");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const isSignedIn = Boolean(session.data?.user.id);
+  const showAccountChoice = !session.isLoading && !isSignedIn && !creatingAccount;
+  const showAccountFlow = isSignedIn || creatingAccount;
+
+  const closeModal = () => {
+    setCreatingAccount(false);
+    onClose();
+  };
 
   const submitUsername = async (event: FormEvent) => {
     event.preventDefault();
@@ -83,7 +92,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+          onMouseDown={(event) => event.target === event.currentTarget && closeModal()}
         >
           <motion.section
             className="connect-modal"
@@ -95,14 +104,39 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
             exit={{ opacity: 0, y: 18, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
           >
-            <button className="icon-button modal-close" onClick={onClose} aria-label="Close connect dialog">
+            <button className="icon-button modal-close" onClick={closeModal} aria-label="Close connect dialog">
               <X size={18} />
             </button>
             <p className="eyebrow">Your identity</p>
-            <h2 id="connect-title">Connect to the order</h2>
-            <p className="modal-copy">Use X for attribution, verify with Discord, then add the wallet for rewards and onchain credit.</p>
+            <h2 id="connect-title">{showAccountChoice ? "Enter the order" : isSignedIn ? "Your account" : "Create account"}</h2>
+            <p className="modal-copy">
+              {showAccountChoice
+                ? "Already a member, or joining for the first time?"
+                : "Use X for attribution, verify with Discord, then add your payout wallet."}
+            </p>
 
-            <div className="connect-step">
+            {showAccountChoice && (
+              <div className="account-choice">
+                <Link className="account-choice-button" href="/connect/discord" onClick={closeModal}>
+                  <LogIn size={19} />
+                  <span><b>Have an account</b><small>Log in with linked Discord</small></span>
+                  <ArrowRight size={17} />
+                </Link>
+                <button className="account-choice-button" type="button" onClick={() => setCreatingAccount(true)}>
+                  <UserPlus size={19} />
+                  <span><b>Create account</b><small>Start a new member profile</small></span>
+                  <ArrowRight size={17} />
+                </button>
+              </div>
+            )}
+
+            {creatingAccount && !isSignedIn && (
+              <button className="account-choice-back" type="button" onClick={() => setCreatingAccount(false)}>
+                <ArrowLeft size={14} /> Account options
+              </button>
+            )}
+
+            {showAccountFlow && <div className="connect-step">
               <div className="step-index">{twitter ? <Check size={16} /> : "01"}</div>
               <div>
                 <span className="field-label">X account</span>
@@ -123,23 +157,28 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
                   </form>
                 )}
               </div>
-            </div>
+            </div>}
 
-            <div className="connect-step">
+            {showAccountFlow && <div className="connect-step">
               <div className="step-index">{discordAccount ? <Check size={16} /> : "02"}</div>
               <div>
                 <span className="field-label">Discord verification</span>
                 {discordAccount ? (
                   <p className="connected-value">{discordAccount.username}</p>
-                ) : (
-                  <a className="button button-dark" href={`${API_URL}/api/auth/discord/start`}>
+                ) : twitter ? (
+                  <Link className="button button-dark" href="/connect/discord" onClick={closeModal}>
                     Link Discord <ArrowRight size={16} />
-                  </a>
+                  </Link>
+                ) : (
+                  <>
+                    <button className="button button-dark" type="button" disabled>Link Discord <ArrowRight size={16} /></button>
+                    <p className="field-hint">Save your X username first.</p>
+                  </>
                 )}
               </div>
-            </div>
+            </div>}
 
-            <div className="connect-step">
+            {showAccountFlow && <div className="connect-step">
               <div className="step-index">{wallet ? <Check size={16} /> : "03"}</div>
               <form onSubmit={submitWallet}>
                 <label className="field-label" htmlFor="wallet">Payout wallet</label>
@@ -165,11 +204,11 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
                   </>
                 )}
               </form>
-            </div>
+            </div>}
 
             {(twitter || discordAccount) && (
               <div className="modal-actions">
-                <Link href="/profile" className="button button-amber" onClick={onClose}>Open profile</Link>
+                <Link href="/profile" className="button button-amber" onClick={closeModal}>Open profile</Link>
                 <button className="text-button danger" onClick={async () => {
                   await apiFetch("/auth/disconnect", { method: "POST" }).catch(() => undefined);
                   local.disconnect();
@@ -181,7 +220,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
                 </button>
               </div>
             )}
-            <p className="fine-print">Discord verification is required for every action. The pasted X username remains unverified attribution.</p>
+            {showAccountFlow && <p className="fine-print">Discord verification is required for every action. The pasted X username remains unverified attribution.</p>}
           </motion.section>
         </motion.div>
       )}

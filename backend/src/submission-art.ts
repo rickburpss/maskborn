@@ -51,6 +51,36 @@ export function canonicalizePixelData(source: SourcePixelData) {
   };
 }
 
+export type TraitPreviewVariant = {
+  id: string;
+  label: string;
+  categories: Array<typeof communityLayerKinds[number]>;
+  svg: string;
+};
+
+export function createTraitPreviewVariants(source: SourcePixelData, baseMarkup: string): TraitPreviewVariant[] {
+  const canonical = canonicalizePixelData(source);
+  const present = communityLayerKinds.filter((kind) => canonical.traits.some((trait) => trait.kind === kind));
+  const pixelsByKind = new Map(canonical.traits.map((trait) => [trait.kind, trait.pixels]));
+  const rects = (kind: typeof communityLayerKinds[number]) => (pixelsByKind.get(kind) ?? [])
+    .map(([x, y, color]) => `<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`)
+    .join("");
+
+  return Array.from({ length: (1 << present.length) - 1 }, (_, index) => index + 1).map((mask) => {
+    const categories = present.filter((_, index) => (mask & (1 << index)) !== 0);
+    const background = categories.includes("Background") ? rects("Background") : "";
+    const foreground = categories.filter((kind) => kind !== "Background").map(rects).join("");
+    const id = categories.map((kind) => kind.toLowerCase()).join("-");
+    const label = categories.length === present.length && present.length > 1 ? "All" : categories.join(" + ");
+    return {
+      id,
+      label,
+      categories,
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="512" height="512" shape-rendering="crispEdges">${background}${baseMarkup}${foreground}</svg>`,
+    };
+  });
+}
+
 export function jsonBuffer(value: unknown) {
   return Buffer.from(`${JSON.stringify(value, null, 2)}\n`, "utf8");
 }

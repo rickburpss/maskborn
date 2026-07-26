@@ -403,6 +403,69 @@ h3 {
   line-height: 1.6;
 }
 
+.account-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.account-choice-button {
+  display: grid;
+  min-width: 0;
+  min-height: 118px;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+}
+
+.account-choice-button > svg:first-child {
+  color: var(--amber-dark);
+}
+
+.account-choice-button span {
+  align-self: end;
+}
+
+.account-choice-button b,
+.account-choice-button small {
+  display: block;
+}
+
+.account-choice-button b {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.account-choice-button small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.account-choice-button:hover {
+  background: var(--amber);
+}
+
+.account-choice-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .connect-step {
   display: grid;
   grid-template-columns: 34px 1fr;
@@ -854,6 +917,47 @@ h3 {
 .status-tag.accepted,
 .detail-labels .accepted {
   background: var(--amber);
+}
+
+.trait-preview-controls {
+  padding: 11px 0 13px;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.trait-preview-controls > span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trait-preview-controls > div {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 1px 1px 7px;
+  scrollbar-color: var(--amber) var(--line);
+  scrollbar-width: thin;
+}
+
+.trait-preview-controls button {
+  min-height: 30px;
+  flex: 0 0 auto;
+  padding: 0 9px;
+  border: 1px solid var(--line-dark);
+  background: var(--paper);
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.trait-preview-controls button.active {
+  border-color: var(--ink);
+  background: var(--amber);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 .art-card-body {
@@ -1330,6 +1434,36 @@ h3 {
   place-items: center;
   border-radius: 50%;
   background: var(--amber);
+}
+
+.discord-wake {
+  display: flex;
+  min-height: 100dvh;
+  max-width: 780px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding-block: 140px 80px;
+}
+
+.discord-wake-spinner {
+  margin-bottom: 28px;
+  color: var(--amber-dark);
+  animation: spin 1s linear infinite;
+}
+
+.discord-wake h1 {
+  max-width: 720px;
+  margin: 8px 0 20px;
+  font-size: clamp(70px, 11vw, 132px);
+  line-height: 0.82;
+}
+
+.discord-wake > p:not(.eyebrow) {
+  max-width: 570px;
+  margin: 0 0 28px;
+  color: var(--muted);
+  line-height: 1.7;
 }
 
 .studio {
@@ -2155,6 +2289,10 @@ h3 {
   grid-template-columns: 1fr 340px;
   gap: 55px;
   padding-top: 70px;
+}
+
+.profile-creations {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .profile-section-head {
@@ -3349,6 +3487,10 @@ body:has(.admin-shell) .site-footer {
     grid-template-columns: 1fr;
   }
 
+  .profile-creations {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .profile-aside {
     grid-template-columns: 1fr 1fr;
   }
@@ -3426,6 +3568,10 @@ body:has(.admin-shell) .site-footer {
 }
 
 @media (max-width: 520px) {
+  .profile-creations {
+    grid-template-columns: 1fr;
+  }
+
   .modal-backdrop {
     padding: 8px;
     place-items: end center;
@@ -3441,6 +3587,20 @@ body:has(.admin-shell) .site-footer {
 
   .connect-modal h2 {
     font-size: 42px;
+  }
+
+  .account-choice {
+    grid-template-columns: 1fr;
+  }
+
+  .account-choice-button {
+    min-height: 84px;
+    grid-template-columns: 26px 1fr auto;
+    padding: 13px;
+  }
+
+  .account-choice-button span {
+    align-self: center;
   }
 
   .connect-step {
@@ -3498,6 +3658,11 @@ body:has(.admin-shell) .site-footer {
 
   .art-grid {
     grid-template-columns: 1fr;
+  }
+
+  .trait-preview-controls button {
+    min-height: 34px;
+    padding-inline: 11px;
   }
 
   .gallery-item,

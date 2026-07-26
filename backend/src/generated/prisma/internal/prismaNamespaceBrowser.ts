@@ -207,6 +207,7 @@ export const SubmissionScalarFieldEnum = {
   mediaHash: 'mediaHash',
   previewAssetUrl: 'previewAssetUrl',
   previewAssetKey: 'previewAssetKey',
+  previewVariants: 'previewVariants',
   storageProvider: 'storageProvider',
   canonicalDataKey: 'canonicalDataKey',
   canonicalHash: 'canonicalHash',

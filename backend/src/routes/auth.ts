@@ -16,7 +16,7 @@ const setSessionCookie = (res: Response, token: string) => {
   res.cookie("mbo_session", token, {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
     maxAge: sessionLifetimeMs,
   });
 };
@@ -98,7 +98,7 @@ authRouter.get("/auth/discord/start", asyncRoute(async (_req, res) => {
   res.cookie("mbo_discord_state", state, {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 10 * 60 * 1000,
   });
   const params = new URLSearchParams({
@@ -107,7 +107,6 @@ authRouter.get("/auth/discord/start", asyncRoute(async (_req, res) => {
     scope: "identify",
     state,
     redirect_uri: config.DISCORD_CALLBACK_URL,
-    prompt: "consent",
   });
   res.redirect(`https://discord.com/oauth2/authorize?${params}`);
 }));
@@ -167,41 +166,15 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
       },
     },
   });
-  if (req.auth && linked && linked.userId !== req.auth.userId) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=already-linked`);
+  const currentAuth = req.auth;
+  if (!linked && !currentAuth) {
+    res.redirect(`${config.FRONTEND_URL}/?discord=create-profile-first`);
     return;
   }
-
   const avatarUrl = profile.avatar
     ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.${profile.avatar.startsWith("a_") ? "gif" : "png"}`
     : null;
   const userId = await db.$transaction(async (tx) => {
-    if (req.auth) {
-      await tx.socialAccount.upsert({
-        where: {
-          provider_providerAccountId: {
-            provider: "DISCORD",
-            providerAccountId: profile.id,
-          },
-        },
-        create: {
-          userId: req.auth.userId,
-          provider: "DISCORD",
-          providerAccountId: profile.id,
-          username: profile.username,
-          verificationState: "VERIFIED",
-        },
-        update: {
-          username: profile.username,
-          verificationState: "VERIFIED",
-        },
-      });
-      await tx.user.update({
-        where: { id: req.auth.userId },
-        data: { avatarUrl },
-      });
-      return req.auth.userId;
-    }
     if (linked) {
       await tx.socialAccount.update({
         where: { id: linked.id },
@@ -213,21 +186,33 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
       });
       return linked.userId;
     }
-    const user = await tx.user.create({
-      data: {
-        displayName: profile.global_name ?? profile.username,
-        avatarUrl,
-        socialAccounts: {
-          create: {
+    if (currentAuth) {
+      await tx.socialAccount.upsert({
+        where: {
+          provider_providerAccountId: {
             provider: "DISCORD",
             providerAccountId: profile.id,
-            username: profile.username,
-            verificationState: "VERIFIED",
           },
         },
-      },
-    });
-    return user.id;
+        create: {
+          userId: currentAuth.userId,
+          provider: "DISCORD",
+          providerAccountId: profile.id,
+          username: profile.username,
+          verificationState: "VERIFIED",
+        },
+        update: {
+          username: profile.username,
+          verificationState: "VERIFIED",
+        },
+      });
+      await tx.user.update({
+        where: { id: currentAuth.userId },
+        data: { avatarUrl },
+      });
+      return currentAuth.userId;
+    }
+    throw new Error("Discord authentication reached an invalid account state.");
   });
 
   const sessionToken = randomBytes(32).toString("base64url");
