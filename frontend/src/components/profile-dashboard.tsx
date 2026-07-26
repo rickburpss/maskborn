@@ -8,6 +8,7 @@ import { PixelArtwork } from "@/components/pixel-artwork";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { apiFetch } from "@/lib/api";
 import type { ArtType, Artwork, ArtworkPreviewVariant } from "@/lib/types";
+import { useDraftStore } from "@/store/draft";
 import { useSessionStore } from "@/store/session";
 
 export function ProfileDashboard() {
@@ -17,7 +18,8 @@ export function ProfileDashboard() {
   const remoteUsername = session.data?.user.socialAccounts.find((account) => account.provider === "X_MANUAL")?.username;
   const twitter = remoteUsername ? `@${remoteUsername}` : localTwitter ?? "@not-connected";
   const wallet = session.data?.user.wallets.find((item) => item.isPrimary)?.address ?? localWallet;
-  const payoutEligible = ["Bone Merchant"];
+  const draftTitle = useDraftStore((state) => state.title);
+  const draftUpdatedAt = useDraftStore((state) => state.updatedAt);
   const profile = useQuery({
     queryKey: ["profile", "submission-slots"],
     queryFn: () => apiFetch<{
@@ -38,7 +40,7 @@ export function ProfileDashboard() {
         upvoteCount: number;
         downvoteCount: number;
         publishedAt: string;
-        galleryEntry: unknown | null;
+        galleryEntry: { feeShare?: unknown | null } | null;
       }>;
     }>("/profile"),
     enabled: Boolean(session.data?.user.id),
@@ -64,6 +66,9 @@ export function ProfileDashboard() {
     previewVariants: item.kind === "TRAIT_EXTENSION" ? (item.previewVariants ?? []) : [],
   }));
   const communityScore = userArt.reduce((total, item) => total + item.upvotes, 0);
+  const payoutEligible = (profile.data?.submissions ?? [])
+    .filter((item) => Boolean(item.galleryEntry?.feeShare))
+    .map((item) => item.title);
 
   return (
     <section className="profile-shell shell">
@@ -96,13 +101,15 @@ export function ProfileDashboard() {
           {!profile.isLoading && userArt.length === 0 && <div className="empty-state">You have not published a creation yet.</div>}
         </div>
         <aside className="profile-aside">
-          <div className="draft-card">
-            <FilePenLine size={21} />
-            <p className="eyebrow">Local draft</p>
-            <h3>Untitled mask</h3>
-            <p>Saved in this browser a few moments ago.</p>
-            <Link className="button button-dark" href="/draw">Continue drawing</Link>
-          </div>
+          {draftUpdatedAt && (
+            <div className="draft-card">
+              <FilePenLine size={21} />
+              <p className="eyebrow">Local draft</p>
+              <h3>{draftTitle.trim() || "Untitled mask"}</h3>
+              <p>Last saved {new Date(draftUpdatedAt).toLocaleString()}.</p>
+              <Link className="button button-dark" href="/draw">Continue drawing</Link>
+            </div>
+          )}
           <div className="earnings-card">
             <WalletCards size={21} />
             <p className="eyebrow">Future creator payout</p>
@@ -112,7 +119,9 @@ export function ProfileDashboard() {
                 <div key={name}><span>{String(index + 1).padStart(2, "0")}</span><b>{name}</b></div>
               ))}
             </div>
-            <p>Names appear here when your accepted 1/1 is marked eligible before launch.</p>
+            <p>{payoutEligible.length > 0
+              ? "These accepted works have a recorded creator fee share."
+              : "No accepted work is payout eligible yet."}</p>
           </div>
         </aside>
       </div>

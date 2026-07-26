@@ -92,9 +92,11 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
       <div className="art-card-body">
         <div className="card-kicker"><span>#{String(index + 1).padStart(3, "0")}</span><span>{artwork.submittedAt}</span></div>
         <Link href={`/art/${artwork.slug}`}><h3>{artwork.title}</h3></Link>
-        <a className="creator-link" href={artwork.twitterUrl} target="_blank" rel="noreferrer">
-          {artwork.creator}<ArrowUpRight size={13} />
-        </a>
+        {artwork.twitterUrl ? (
+          <a className="creator-link" href={artwork.twitterUrl} target="_blank" rel="noreferrer">
+            {artwork.creator}<ArrowUpRight size={13} />
+          </a>
+        ) : <span className="creator-link">{artwork.creator}</span>}
         <div className="vote-row">
           <button className={vote === "up" ? "voted" : ""} onClick={() => applyVote("up")} aria-label={`Upvote ${artwork.title}`}>
             <ThumbsUp size={15} fill={vote === "up" ? "currentColor" : "none"} /> {upvotes}

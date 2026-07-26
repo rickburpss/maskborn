@@ -13,7 +13,7 @@ export type Artwork = {
   slug: string;
   title: string;
   creator: string;
-  twitterUrl: string;
+  twitterUrl?: string;
   type: ArtType;
   status: GalleryStatus;
   variant: number;

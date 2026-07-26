@@ -1,62 +1,106 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Check, ChevronDown, Clock3, Ellipsis, Search, ShieldCheck, UserRound } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, ArrowRight, Check, Clock3, Search, ShieldCheck, UserRound } from "lucide-react";
 import { useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
-import { artworks } from "@/lib/data";
+import { apiFetch } from "@/lib/api";
 
-const tabs = ["Review queue", "Gallery", "Traits", "Restrictions", "Payouts", "Settings"];
+type ReviewItem = {
+  id: string;
+  title: string;
+  kind: "ONE_OF_ONE" | "TRAIT_EXTENSION";
+  categories: string[];
+  previewAssetUrl: string;
+  publishedAt: string;
+  upvoteCount: number;
+  downvoteCount: number;
+  user: { displayName: string | null; socialAccounts: Array<{ username: string }> };
+};
 
 export function AdminDashboard() {
-  const [tab, setTab] = useState("Review queue");
-  const [selected, setSelected] = useState(artworks[2]);
+  const queryClient = useQueryClient();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const queue = useQuery({
+    queryKey: ["admin", "review-queue"],
+    queryFn: () => apiFetch<{ items: ReviewItem[] }>("/admin/review-queue"),
+    retry: false,
+  });
+  const items = queue.data?.items ?? [];
+  const selected = items.find((item) => item.id === selectedId) ?? items[0];
+  const review = useMutation({
+    mutationFn: (decision: "ACCEPTED" | "REJECTED") => apiFetch(`/admin/submissions/${selected!.id}/review`, {
+      method: "PUT",
+      body: JSON.stringify({ decision, note }),
+    }),
+    onSuccess: async () => {
+      setNote("");
+      setSelectedId(null);
+      await queryClient.invalidateQueries({ queryKey: ["admin", "review-queue"] });
+    },
+  });
 
   return (
     <section className="admin-shell">
       <aside className="admin-nav">
         <div><span className="admin-mark">MBO</span><p>Control room</p></div>
-        <nav>
-          {tabs.map((item) => <button className={tab === item ? "active" : ""} onClick={() => setTab(item)} key={item}>{item}</button>)}
-        </nav>
-        <div className="admin-user"><span>WA</span><div><b>Wale</b><p>Administrator</p></div><Ellipsis size={16} /></div>
+        <nav><button className="active">Review queue</button></nav>
+        <div className="admin-user"><span>AD</span><div><b>Signed-in admin</b><p>Administrator</p></div></div>
       </aside>
       <main className="admin-main">
         <header className="admin-topbar">
-          <div><p className="eyebrow">Admin / {tab}</p><h1>{tab}</h1></div>
-          <div className="admin-actions"><button><Search size={16} /></button><button><AlertTriangle size={16} /><span>3</span></button></div>
+          <div><p className="eyebrow">Admin / Review queue</p><h1>Review queue</h1></div>
+          <div className="admin-actions"><button aria-label="Search"><Search size={16} /></button></div>
         </header>
         <div className="admin-stats">
-          <article><span>Waiting for review</span><b>18</b><p><Clock3 size={13} /> 4 older than 12h</p></article>
-          <article><span>Added this week</span><b>07</b><p><Check size={13} /> 3 traits, 4 one-of-ones</p></article>
-          <article><span>Vote restrictions</span><b>03</b><p><ShieldCheck size={13} /> 2 expire today</p></article>
-          <article><span>Pending payouts</span><b>1.42</b><p>ETH across 6 creators</p></article>
+          <article><span>Waiting for review</span><b>{items.length}</b><p><Clock3 size={13} /> Live queue</p></article>
+          <article><span>Accepted this week</span><b>—</b><p><Check size={13} /> Not loaded on this screen</p></article>
+          <article><span>Vote restrictions</span><b>—</b><p><ShieldCheck size={13} /> Not loaded on this screen</p></article>
+          <article><span>Pending payouts</span><b>—</b><p>Not loaded on this screen</p></article>
         </div>
-        <div className="review-layout">
-          <section className="review-queue">
-            <div className="review-head"><h2>Incoming work</h2><button>Oldest first <ChevronDown size={14} /></button></div>
-            {artworks.slice(1, 5).map((art) => (
-              <button className={selected.id === art.id ? "selected" : ""} onClick={() => setSelected(art)} key={art.id}>
-                <PixelArtwork variant={art.variant} />
-                <div><span>{art.type} · {art.submittedAt}</span><b>{art.title}</b><p>{art.creator}</p></div>
-                <div className="queue-score"><b>{art.upvotes - art.downvotes}</b><span>score</span></div>
-                <ArrowRight size={16} />
-              </button>
-            ))}
-          </section>
-          <aside className="review-detail">
-            <div className="review-preview"><PixelArtwork variant={selected.variant} /></div>
-            <div className="review-detail-head"><span>{selected.type}</span><h2>{selected.title}</h2><p>by {selected.creator}</p></div>
-            <div className="review-metrics">
-              <div><span>Up</span><b>{selected.upvotes}</b></div>
-              <div><span>Down</span><b>{selected.downvotes}</b></div>
-              <div><span>Risk</span><b>Low</b></div>
-            </div>
-            <label className="plain-field"><span>Add to gallery as</span><button className="fake-select">{selected.type === "1/1" ? "1/1 artwork" : `${selected.type} trait`} <ChevronDown size={14} /></button></label>
-            <label className="plain-field"><span>Review note</span><textarea placeholder="Add a private note for the audit log" /></label>
-            <div className="review-actions"><button className="button reject">Reject</button><button className="button button-amber">Approve and add</button></div>
-            <p className="audit-note"><UserRound size={13} /> This action records your account, timestamp, note, and the previous state.</p>
-          </aside>
-        </div>
+        {queue.isLoading && <div className="empty-state">Loading the review queue…</div>}
+        {queue.isError && <div className="empty-state">The review queue could not be loaded. Confirm this account has admin access.</div>}
+        {!queue.isLoading && !queue.isError && items.length === 0 && <div className="empty-state">There are no submissions waiting for review.</div>}
+        {selected && (
+          <div className="review-layout">
+            <section className="review-queue">
+              <div className="review-head"><h2>Incoming work</h2></div>
+              {items.map((art) => {
+                const username = art.user.socialAccounts[0]?.username;
+                const creator = username ? `@${username}` : art.user.displayName ?? "Mask Born member";
+                return (
+                  <button className={selected.id === art.id ? "selected" : ""} onClick={() => setSelectedId(art.id)} key={art.id}>
+                    <PixelArtwork source={art.previewAssetUrl} label={art.title} />
+                    <div><span>{art.kind === "ONE_OF_ONE" ? "1/1" : art.categories.join(" + ")} · {new Date(art.publishedAt).toLocaleDateString()}</span><b>{art.title}</b><p>{creator}</p></div>
+                    <div className="queue-score"><b>{art.upvoteCount - art.downvoteCount}</b><span>score</span></div>
+                    <ArrowRight size={16} />
+                  </button>
+                );
+              })}
+            </section>
+            <aside className="review-detail">
+              <div className="review-preview"><PixelArtwork source={selected.previewAssetUrl} label={selected.title} /></div>
+              <div className="review-detail-head">
+                <span>{selected.kind === "ONE_OF_ONE" ? "1/1" : selected.categories.join(" + ")}</span>
+                <h2>{selected.title}</h2>
+                <p>by {selected.user.socialAccounts[0]?.username ? `@${selected.user.socialAccounts[0].username}` : selected.user.displayName ?? "Mask Born member"}</p>
+              </div>
+              <div className="review-metrics">
+                <div><span>Up</span><b>{selected.upvoteCount}</b></div>
+                <div><span>Down</span><b>{selected.downvoteCount}</b></div>
+                <div><span>Risk</span><b>—</b></div>
+              </div>
+              <label className="plain-field"><span>Review note</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Required audit-log note" /></label>
+              <div className="review-actions">
+                <button className="button reject" disabled={note.trim().length < 2 || review.isPending} onClick={() => review.mutate("REJECTED")}>Reject</button>
+                <button className="button button-amber" disabled={note.trim().length < 2 || review.isPending} onClick={() => review.mutate("ACCEPTED")}>Accept for gallery review</button>
+              </div>
+              {review.isError && <p><AlertTriangle size={13} /> {(review.error as Error).message}</p>}
+              <p className="audit-note"><UserRound size={13} /> This action records your account, timestamp, note, and the previous state.</p>
+            </aside>
+          </div>
+        )}
       </main>
     </section>
   );

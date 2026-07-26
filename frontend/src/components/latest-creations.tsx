@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ArtCard } from "@/components/art-card";
 import { SectionHeading } from "@/components/section-heading";
-import { artworks } from "@/lib/data";
 import { apiFetch } from "@/lib/api";
 import type { ArtType, Artwork } from "@/lib/types";
 
@@ -28,22 +27,22 @@ export function LatestCreations({ limit }: { limit?: number }) {
       upvoteCount: number;
       downvoteCount: number;
       publishedAt: string;
-      user: { socialAccounts: Array<{ username: string }> };
+      user: { displayName: string | null; socialAccounts: Array<{ username: string }> };
       galleryEntry: unknown | null;
     }> }>("/submissions?limit=60"),
     retry: false,
   });
   const source = useMemo<Artwork[]>(() => {
-    if (!feed.data) return artworks;
+    if (!feed.data) return [];
     return feed.data.items.map((item, index) => {
-      const username = item.user.socialAccounts[0]?.username ?? "unknown";
+      const username = item.user.socialAccounts[0]?.username;
       return {
         id: item.id,
         slug: item.slug,
         title: item.title,
         description: item.description,
-        creator: `@${username}`,
-        twitterUrl: `https://x.com/${username}`,
+        creator: username ? `@${username}` : item.user.displayName ?? "Mask Born member",
+        twitterUrl: username ? `https://x.com/${username}` : undefined,
         type: item.kind === "ONE_OF_ONE" ? "1/1" : (item.categories[0] as ArtType ?? "Hats"),
         status: item.galleryEntry ? "Added to gallery" : item.status === "PENDING" ? "In review" : "Community",
         variant: index,
@@ -87,7 +86,13 @@ export function LatestCreations({ limit }: { limit?: number }) {
       <div className="art-grid">
         {visible.map((artwork, index) => <ArtCard key={artwork.id} artwork={artwork} index={index} />)}
       </div>
-      {visible.length === 0 && <div className="empty-state">Nothing has landed in this filter yet.</div>}
+      {feed.isLoading && <div className="empty-state">Loading community submissions…</div>}
+      {feed.isError && <div className="empty-state">Community submissions could not be loaded. Try again shortly.</div>}
+      {!feed.isLoading && !feed.isError && visible.length === 0 && (
+        <div className="empty-state">
+          {source.length === 0 ? "No community work has been published yet." : "Nothing has landed in this filter yet."}
+        </div>
+      )}
     </section>
   );
 }

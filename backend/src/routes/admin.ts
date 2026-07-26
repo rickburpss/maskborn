@@ -15,7 +15,7 @@ adminRouter.get("/review-queue", asyncRoute(async (_req, res) => {
     where: { status: { in: ["PENDING", "REVIEWING"] } },
     orderBy: { publishedAt: "asc" },
     include: {
-      user: { select: { id: true, displayName: true, socialAccounts: { where: { provider: "X" }, take: 1 } } },
+      user: { select: { id: true, displayName: true, socialAccounts: { where: { provider: "X_MANUAL" }, take: 1 } } },
     },
   });
   res.json({ items });

@@ -20,6 +20,6 @@ export const useSessionStore = create<SessionState>()(
       setWallet: (wallet) => set({ wallet }),
       disconnect: () => set({ twitter: null, wallet: null }),
     }),
-    { name: "maskborn-session-demo" },
+    { name: "maskborn-session-v1" },
   ),
 );
