@@ -179,3 +179,14 @@
   normalization, and deterministic pixel ordering.
 - Verification passed: Prisma client generation and schema validation, backend source
   and script TypeScript checks, 6 tests, and the production build.
+
+## 2026-07-26 — Site metadata artwork
+
+- Replaced the default/missing Next.js metadata artwork with the Circle collection art.
+- Browser favicon and shortcut metadata use the existing crisp
+  `/collection/legends/13-circle.svg`.
+- Apple touch, Open Graph, and X/Twitter share metadata use the 1600×1600 `dps.png`,
+  copied into `frontend/public` for direct serving.
+- Added `NEXT_PUBLIC_SITE_URL` to the frontend environment example so production social
+  image URLs resolve against the deployed website rather than localhost.
+- Frontend TypeScript and the production build passed.

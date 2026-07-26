@@ -9,8 +9,26 @@ import { SiteHeader } from "@/components/site-header";
 import { SmoothScroll } from "@/components/smooth-scroll";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: { default: "Mask Born Order", template: "%s — Mask Born Order" },
   description: "A pre-launch pixel collection shaped with its community.",
+  icons: {
+    icon: [{ url: "/collection/legends/13-circle.svg", type: "image/svg+xml" }],
+    shortcut: "/collection/legends/13-circle.svg",
+    apple: "/dps.png",
+  },
+  openGraph: {
+    type: "website",
+    title: "Mask Born Order",
+    description: "A pre-launch pixel collection shaped with its community.",
+    images: [{ url: "/dps.png", width: 1600, height: 1600, alt: "The Circle — Mask Born Order" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mask Born Order",
+    description: "A pre-launch pixel collection shaped with its community.",
+    images: ["/dps.png"],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
