@@ -68,6 +68,14 @@ export function DrawStudio() {
   const backgroundLayers = draft.layers.filter((layer) => layer.kind === "Background");
   const foregroundLayers = draft.layers.filter((layer) => layer.kind !== "Background");
   const activeLayer = draft.layers.find((layer) => layer.id === draft.activeLayerId);
+  const activeLayerName = activeLayer?.name ?? "";
+  const activeLayerKind = activeLayer?.kind;
+  const activeNameLocallyRepeated = activeLayer
+    ? draft.layers.some((layer) =>
+      layer.id !== activeLayer.id
+      && layer.kind === activeLayer.kind
+      && normalizedName(layer.name) === normalizedName(activeLayer.name))
+    : false;
   const descriptionWords = wordCount(draft.description);
   const editingBackground = activeLayer?.kind === "Background" && !previewBackground;
   const selectedCompatibility = compatibilityGroups.find((group) => group.name === compatibilityGroup)!;
@@ -105,25 +113,19 @@ export function DrawStudio() {
     : [];
 
   useEffect(() => {
-    const target = activeLayer;
     if (
       draft.postType !== "ACCESSORY"
       || !discordVerified
-      || !target
-      || !validAccessoryName(target.name)
+      || !activeLayerKind
+      || !validAccessoryName(activeLayerName)
+      || activeNameLocallyRepeated
     ) return;
-    const key = `${target.kind}:${normalizedName(target.name)}`;
-    if (draft.layers.some((layer) =>
-      layer.id !== target.id
-      && layer.kind === target.kind
-      && normalizedName(layer.name) === normalizedName(target.name))) {
-      return;
-    }
+    const key = `${activeLayerKind}:${normalizedName(activeLayerName)}`;
     const timer = window.setTimeout(async () => {
       setNameChecks((current) => ({ ...current, [key]: "checking" }));
       try {
         const result = await apiFetch<{ available: boolean }>(
-          `/submissions/name-availability?category=${target.kind.toUpperCase()}&name=${encodeURIComponent(target.name)}`,
+          `/submissions/name-availability?category=${activeLayerKind.toUpperCase()}&name=${encodeURIComponent(activeLayerName)}`,
         );
         setNameChecks((current) => ({ ...current, [key]: result.available ? "available" : "taken" }));
       } catch {
@@ -131,7 +133,7 @@ export function DrawStudio() {
       }
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [activeLayer, discordVerified, draft.layers, draft.postType]);
+  }, [activeLayerKind, activeLayerName, activeNameLocallyRepeated, discordVerified, draft.postType]);
 
   useEffect(() => {
     const handleHistoryKey = (event: KeyboardEvent) => {

@@ -318,3 +318,11 @@
   applications, risk records, and object-storage files.
 - JavaScript syntax and backend TypeScript checks passed. The Neon dry run succeeded
   and made no changes.
+
+## 2026-07-28 — Accessory-name check throttling
+
+- Changed draw-studio name availability checks to depend only on the active accessory
+  name, category, active layer, local duplicate state, and verification state.
+- Painting or erasing pixels no longer resets the label to “checking name” or sends
+  repeated availability requests to the API.
+- Frontend TypeScript, ESLint, and all 18 tests passed.
