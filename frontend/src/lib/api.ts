@@ -10,10 +10,21 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     },
   });
   if (!response.ok) {
-    const body = await response.json().catch(() => null) as { error?: { code?: string; message?: string } } | null;
-    const error = new Error(body?.error?.message ?? "The request failed.") as Error & { code?: string; status?: number };
+    const body = await response.json().catch(() => null) as {
+      error?: { code?: string; message?: string; details?: unknown; fields?: unknown; requestId?: string };
+    } | null;
+    const error = new Error(body?.error?.message ?? `Request failed with status ${response.status}.`) as Error & {
+      code?: string;
+      status?: number;
+      details?: unknown;
+      fields?: unknown;
+      requestId?: string;
+    };
     error.code = body?.error?.code;
     error.status = response.status;
+    error.details = body?.error?.details;
+    error.fields = body?.error?.fields;
+    error.requestId = body?.error?.requestId;
     throw error;
   }
   if (response.status === 204) return undefined as T;

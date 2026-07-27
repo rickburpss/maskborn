@@ -368,6 +368,7 @@ export type SubmissionWhereInput = {
   votes?: Prisma.VoteListRelationFilter
   voteEvents?: Prisma.VoteEventListRelationFilter
   statusEvents?: Prisma.SubmissionStatusEventListRelationFilter
+  accessories?: Prisma.SubmissionAccessoryListRelationFilter
   galleryEntry?: Prisma.XOR<Prisma.GalleryEntryNullableScalarRelationFilter, Prisma.GalleryEntryWhereInput> | null
 }
 
@@ -401,6 +402,7 @@ export type SubmissionOrderByWithRelationInput = {
   votes?: Prisma.VoteOrderByRelationAggregateInput
   voteEvents?: Prisma.VoteEventOrderByRelationAggregateInput
   statusEvents?: Prisma.SubmissionStatusEventOrderByRelationAggregateInput
+  accessories?: Prisma.SubmissionAccessoryOrderByRelationAggregateInput
   galleryEntry?: Prisma.GalleryEntryOrderByWithRelationInput
 }
 
@@ -438,6 +440,7 @@ export type SubmissionWhereUniqueInput = Prisma.AtLeast<{
   votes?: Prisma.VoteListRelationFilter
   voteEvents?: Prisma.VoteEventListRelationFilter
   statusEvents?: Prisma.SubmissionStatusEventListRelationFilter
+  accessories?: Prisma.SubmissionAccessoryListRelationFilter
   galleryEntry?: Prisma.XOR<Prisma.GalleryEntryNullableScalarRelationFilter, Prisma.GalleryEntryWhereInput> | null
 }, "id" | "slug" | "pixelDataKey" | "previewAssetKey" | "userId_mediaHash">
 
@@ -534,6 +537,7 @@ export type SubmissionCreateInput = {
   votes?: Prisma.VoteCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryCreateNestedOneWithoutSubmissionInput
 }
 
@@ -566,6 +570,7 @@ export type SubmissionUncheckedCreateInput = {
   votes?: Prisma.VoteUncheckedCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryUncheckedCreateNestedOneWithoutSubmissionInput
 }
 
@@ -598,6 +603,7 @@ export type SubmissionUpdateInput = {
   votes?: Prisma.VoteUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -630,6 +636,7 @@ export type SubmissionUncheckedUpdateInput = {
   votes?: Prisma.VoteUncheckedUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUncheckedUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -885,6 +892,20 @@ export type EnumSubmissionStatusFieldUpdateOperationsInput = {
   set?: $Enums.SubmissionStatus
 }
 
+export type SubmissionCreateNestedOneWithoutAccessoriesInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutAccessoriesInput, Prisma.SubmissionUncheckedCreateWithoutAccessoriesInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutAccessoriesInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+}
+
+export type SubmissionUpdateOneRequiredWithoutAccessoriesNestedInput = {
+  create?: Prisma.XOR<Prisma.SubmissionCreateWithoutAccessoriesInput, Prisma.SubmissionUncheckedCreateWithoutAccessoriesInput>
+  connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutAccessoriesInput
+  upsert?: Prisma.SubmissionUpsertWithoutAccessoriesInput
+  connect?: Prisma.SubmissionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubmissionUpdateToOneWithWhereWithoutAccessoriesInput, Prisma.SubmissionUpdateWithoutAccessoriesInput>, Prisma.SubmissionUncheckedUpdateWithoutAccessoriesInput>
+}
+
 export type SubmissionCreateNestedOneWithoutStatusEventsInput = {
   create?: Prisma.XOR<Prisma.SubmissionCreateWithoutStatusEventsInput, Prisma.SubmissionUncheckedCreateWithoutStatusEventsInput>
   connectOrCreate?: Prisma.SubmissionCreateOrConnectWithoutStatusEventsInput
@@ -969,6 +990,7 @@ export type SubmissionCreateWithoutUserInput = {
   votes?: Prisma.VoteCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1000,6 +1022,7 @@ export type SubmissionUncheckedCreateWithoutUserInput = {
   votes?: Prisma.VoteUncheckedCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryUncheckedCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1060,6 +1083,150 @@ export type SubmissionScalarWhereInput = {
   downvoteCount?: Prisma.IntFilter<"Submission"> | number
 }
 
+export type SubmissionCreateWithoutAccessoriesInput = {
+  id?: string
+  slug: string
+  kind: $Enums.SubmissionKind
+  title: string
+  description: string
+  generatorVersion: string
+  categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
+  pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
+  compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaHash: string
+  previewAssetUrl: string
+  previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
+  sourcePostUrl?: string | null
+  status?: $Enums.SubmissionStatus
+  publishedAt?: Date | string
+  updatedAt?: Date | string
+  upvoteCount?: number
+  downvoteCount?: number
+  user: Prisma.UserCreateNestedOneWithoutSubmissionsInput
+  votes?: Prisma.VoteCreateNestedManyWithoutSubmissionInput
+  voteEvents?: Prisma.VoteEventCreateNestedManyWithoutSubmissionInput
+  statusEvents?: Prisma.SubmissionStatusEventCreateNestedManyWithoutSubmissionInput
+  galleryEntry?: Prisma.GalleryEntryCreateNestedOneWithoutSubmissionInput
+}
+
+export type SubmissionUncheckedCreateWithoutAccessoriesInput = {
+  id?: string
+  slug: string
+  userId: string
+  kind: $Enums.SubmissionKind
+  title: string
+  description: string
+  generatorVersion: string
+  categories?: Prisma.SubmissionCreatecategoriesInput | $Enums.GeneratorCategory[]
+  pixelData: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: string | null
+  sourceHash?: string | null
+  compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaHash: string
+  previewAssetUrl: string
+  previewAssetKey?: string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  storageProvider?: string
+  canonicalDataKey?: string | null
+  canonicalHash?: string | null
+  sourcePostUrl?: string | null
+  status?: $Enums.SubmissionStatus
+  publishedAt?: Date | string
+  updatedAt?: Date | string
+  upvoteCount?: number
+  downvoteCount?: number
+  votes?: Prisma.VoteUncheckedCreateNestedManyWithoutSubmissionInput
+  voteEvents?: Prisma.VoteEventUncheckedCreateNestedManyWithoutSubmissionInput
+  statusEvents?: Prisma.SubmissionStatusEventUncheckedCreateNestedManyWithoutSubmissionInput
+  galleryEntry?: Prisma.GalleryEntryUncheckedCreateNestedOneWithoutSubmissionInput
+}
+
+export type SubmissionCreateOrConnectWithoutAccessoriesInput = {
+  where: Prisma.SubmissionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutAccessoriesInput, Prisma.SubmissionUncheckedCreateWithoutAccessoriesInput>
+}
+
+export type SubmissionUpsertWithoutAccessoriesInput = {
+  update: Prisma.XOR<Prisma.SubmissionUpdateWithoutAccessoriesInput, Prisma.SubmissionUncheckedUpdateWithoutAccessoriesInput>
+  create: Prisma.XOR<Prisma.SubmissionCreateWithoutAccessoriesInput, Prisma.SubmissionUncheckedCreateWithoutAccessoriesInput>
+  where?: Prisma.SubmissionWhereInput
+}
+
+export type SubmissionUpdateToOneWithWhereWithoutAccessoriesInput = {
+  where?: Prisma.SubmissionWhereInput
+  data: Prisma.XOR<Prisma.SubmissionUpdateWithoutAccessoriesInput, Prisma.SubmissionUncheckedUpdateWithoutAccessoriesInput>
+}
+
+export type SubmissionUpdateWithoutAccessoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumSubmissionKindFieldUpdateOperationsInput | $Enums.SubmissionKind
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
+  pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  upvoteCount?: Prisma.IntFieldUpdateOperationsInput | number
+  downvoteCount?: Prisma.IntFieldUpdateOperationsInput | number
+  user?: Prisma.UserUpdateOneRequiredWithoutSubmissionsNestedInput
+  votes?: Prisma.VoteUpdateManyWithoutSubmissionNestedInput
+  voteEvents?: Prisma.VoteEventUpdateManyWithoutSubmissionNestedInput
+  statusEvents?: Prisma.SubmissionStatusEventUpdateManyWithoutSubmissionNestedInput
+  galleryEntry?: Prisma.GalleryEntryUpdateOneWithoutSubmissionNestedInput
+}
+
+export type SubmissionUncheckedUpdateWithoutAccessoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumSubmissionKindFieldUpdateOperationsInput | $Enums.SubmissionKind
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  generatorVersion?: Prisma.StringFieldUpdateOperationsInput | string
+  categories?: Prisma.SubmissionUpdatecategoriesInput | $Enums.GeneratorCategory[]
+  pixelData?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  pixelDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compatibility?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaHash?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  previewAssetKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  previewVariants?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  storageProvider?: Prisma.StringFieldUpdateOperationsInput | string
+  canonicalDataKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonicalHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourcePostUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumSubmissionStatusFieldUpdateOperationsInput | $Enums.SubmissionStatus
+  publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  upvoteCount?: Prisma.IntFieldUpdateOperationsInput | number
+  downvoteCount?: Prisma.IntFieldUpdateOperationsInput | number
+  votes?: Prisma.VoteUncheckedUpdateManyWithoutSubmissionNestedInput
+  voteEvents?: Prisma.VoteEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  statusEvents?: Prisma.SubmissionStatusEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  galleryEntry?: Prisma.GalleryEntryUncheckedUpdateOneWithoutSubmissionNestedInput
+}
+
 export type SubmissionCreateWithoutStatusEventsInput = {
   id?: string
   slug: string
@@ -1088,6 +1255,7 @@ export type SubmissionCreateWithoutStatusEventsInput = {
   user: Prisma.UserCreateNestedOneWithoutSubmissionsInput
   votes?: Prisma.VoteCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1119,6 +1287,7 @@ export type SubmissionUncheckedCreateWithoutStatusEventsInput = {
   downvoteCount?: number
   votes?: Prisma.VoteUncheckedCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventUncheckedCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryUncheckedCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1166,6 +1335,7 @@ export type SubmissionUpdateWithoutStatusEventsInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutSubmissionsNestedInput
   votes?: Prisma.VoteUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1197,6 +1367,7 @@ export type SubmissionUncheckedUpdateWithoutStatusEventsInput = {
   downvoteCount?: Prisma.IntFieldUpdateOperationsInput | number
   votes?: Prisma.VoteUncheckedUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUncheckedUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1228,6 +1399,7 @@ export type SubmissionCreateWithoutVotesInput = {
   user: Prisma.UserCreateNestedOneWithoutSubmissionsInput
   voteEvents?: Prisma.VoteEventCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1259,6 +1431,7 @@ export type SubmissionUncheckedCreateWithoutVotesInput = {
   downvoteCount?: number
   voteEvents?: Prisma.VoteEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryUncheckedCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1306,6 +1479,7 @@ export type SubmissionUpdateWithoutVotesInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutSubmissionsNestedInput
   voteEvents?: Prisma.VoteEventUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1337,6 +1511,7 @@ export type SubmissionUncheckedUpdateWithoutVotesInput = {
   downvoteCount?: Prisma.IntFieldUpdateOperationsInput | number
   voteEvents?: Prisma.VoteEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUncheckedUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1368,6 +1543,7 @@ export type SubmissionCreateWithoutVoteEventsInput = {
   user: Prisma.UserCreateNestedOneWithoutSubmissionsInput
   votes?: Prisma.VoteCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1399,6 +1575,7 @@ export type SubmissionUncheckedCreateWithoutVoteEventsInput = {
   downvoteCount?: number
   votes?: Prisma.VoteUncheckedCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedCreateNestedManyWithoutSubmissionInput
   galleryEntry?: Prisma.GalleryEntryUncheckedCreateNestedOneWithoutSubmissionInput
 }
 
@@ -1446,6 +1623,7 @@ export type SubmissionUpdateWithoutVoteEventsInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutSubmissionsNestedInput
   votes?: Prisma.VoteUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1477,6 +1655,7 @@ export type SubmissionUncheckedUpdateWithoutVoteEventsInput = {
   downvoteCount?: Prisma.IntFieldUpdateOperationsInput | number
   votes?: Prisma.VoteUncheckedUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUncheckedUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1509,6 +1688,7 @@ export type SubmissionCreateWithoutGalleryEntryInput = {
   votes?: Prisma.VoteCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionUncheckedCreateWithoutGalleryEntryInput = {
@@ -1540,6 +1720,7 @@ export type SubmissionUncheckedCreateWithoutGalleryEntryInput = {
   votes?: Prisma.VoteUncheckedCreateNestedManyWithoutSubmissionInput
   voteEvents?: Prisma.VoteEventUncheckedCreateNestedManyWithoutSubmissionInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedCreateNestedManyWithoutSubmissionInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedCreateNestedManyWithoutSubmissionInput
 }
 
 export type SubmissionCreateOrConnectWithoutGalleryEntryInput = {
@@ -1587,6 +1768,7 @@ export type SubmissionUpdateWithoutGalleryEntryInput = {
   votes?: Prisma.VoteUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionUncheckedUpdateWithoutGalleryEntryInput = {
@@ -1618,6 +1800,7 @@ export type SubmissionUncheckedUpdateWithoutGalleryEntryInput = {
   votes?: Prisma.VoteUncheckedUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedUpdateManyWithoutSubmissionNestedInput
 }
 
 export type SubmissionCreateManyUserInput = {
@@ -1675,6 +1858,7 @@ export type SubmissionUpdateWithoutUserInput = {
   votes?: Prisma.VoteUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1706,6 +1890,7 @@ export type SubmissionUncheckedUpdateWithoutUserInput = {
   votes?: Prisma.VoteUncheckedUpdateManyWithoutSubmissionNestedInput
   voteEvents?: Prisma.VoteEventUncheckedUpdateManyWithoutSubmissionNestedInput
   statusEvents?: Prisma.SubmissionStatusEventUncheckedUpdateManyWithoutSubmissionNestedInput
+  accessories?: Prisma.SubmissionAccessoryUncheckedUpdateManyWithoutSubmissionNestedInput
   galleryEntry?: Prisma.GalleryEntryUncheckedUpdateOneWithoutSubmissionNestedInput
 }
 
@@ -1745,12 +1930,14 @@ export type SubmissionCountOutputType = {
   votes: number
   voteEvents: number
   statusEvents: number
+  accessories: number
 }
 
 export type SubmissionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   votes?: boolean | SubmissionCountOutputTypeCountVotesArgs
   voteEvents?: boolean | SubmissionCountOutputTypeCountVoteEventsArgs
   statusEvents?: boolean | SubmissionCountOutputTypeCountStatusEventsArgs
+  accessories?: boolean | SubmissionCountOutputTypeCountAccessoriesArgs
 }
 
 /**
@@ -1784,6 +1971,13 @@ export type SubmissionCountOutputTypeCountStatusEventsArgs<ExtArgs extends runti
   where?: Prisma.SubmissionStatusEventWhereInput
 }
 
+/**
+ * SubmissionCountOutputType without action
+ */
+export type SubmissionCountOutputTypeCountAccessoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubmissionAccessoryWhereInput
+}
+
 
 export type SubmissionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1815,6 +2009,7 @@ export type SubmissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   votes?: boolean | Prisma.Submission$votesArgs<ExtArgs>
   voteEvents?: boolean | Prisma.Submission$voteEventsArgs<ExtArgs>
   statusEvents?: boolean | Prisma.Submission$statusEventsArgs<ExtArgs>
+  accessories?: boolean | Prisma.Submission$accessoriesArgs<ExtArgs>
   galleryEntry?: boolean | Prisma.Submission$galleryEntryArgs<ExtArgs>
   _count?: boolean | Prisma.SubmissionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["submission"]>
@@ -1911,6 +2106,7 @@ export type SubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   votes?: boolean | Prisma.Submission$votesArgs<ExtArgs>
   voteEvents?: boolean | Prisma.Submission$voteEventsArgs<ExtArgs>
   statusEvents?: boolean | Prisma.Submission$statusEventsArgs<ExtArgs>
+  accessories?: boolean | Prisma.Submission$accessoriesArgs<ExtArgs>
   galleryEntry?: boolean | Prisma.Submission$galleryEntryArgs<ExtArgs>
   _count?: boolean | Prisma.SubmissionCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1928,6 +2124,7 @@ export type $SubmissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     votes: Prisma.$VotePayload<ExtArgs>[]
     voteEvents: Prisma.$VoteEventPayload<ExtArgs>[]
     statusEvents: Prisma.$SubmissionStatusEventPayload<ExtArgs>[]
+    accessories: Prisma.$SubmissionAccessoryPayload<ExtArgs>[]
     galleryEntry: Prisma.$GalleryEntryPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2354,6 +2551,7 @@ export interface Prisma__SubmissionClient<T, Null = never, ExtArgs extends runti
   votes<T extends Prisma.Submission$votesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$votesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   voteEvents<T extends Prisma.Submission$voteEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$voteEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VoteEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   statusEvents<T extends Prisma.Submission$statusEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$statusEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionStatusEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  accessories<T extends Prisma.Submission$accessoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$accessoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubmissionAccessoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   galleryEntry<T extends Prisma.Submission$galleryEntryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Submission$galleryEntryArgs<ExtArgs>>): Prisma.Prisma__GalleryEntryClient<runtime.Types.Result.GetResult<Prisma.$GalleryEntryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2879,6 +3077,30 @@ export type Submission$statusEventsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.SubmissionStatusEventScalarFieldEnum | Prisma.SubmissionStatusEventScalarFieldEnum[]
+}
+
+/**
+ * Submission.accessories
+ */
+export type Submission$accessoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubmissionAccessory
+   */
+  select?: Prisma.SubmissionAccessorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubmissionAccessory
+   */
+  omit?: Prisma.SubmissionAccessoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubmissionAccessoryInclude<ExtArgs> | null
+  where?: Prisma.SubmissionAccessoryWhereInput
+  orderBy?: Prisma.SubmissionAccessoryOrderByWithRelationInput | Prisma.SubmissionAccessoryOrderByWithRelationInput[]
+  cursor?: Prisma.SubmissionAccessoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubmissionAccessoryScalarFieldEnum | Prisma.SubmissionAccessoryScalarFieldEnum[]
 }
 
 /**

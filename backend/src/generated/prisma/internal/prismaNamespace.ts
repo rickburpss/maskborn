@@ -405,6 +405,7 @@ export const ModelName = {
   Draft: 'Draft',
   DraftRevision: 'DraftRevision',
   Submission: 'Submission',
+  SubmissionAccessory: 'SubmissionAccessory',
   SubmissionStatusEvent: 'SubmissionStatusEvent',
   Vote: 'Vote',
   VoteEvent: 'VoteEvent',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "socialAccount" | "session" | "wallet" | "application" | "draft" | "draftRevision" | "submission" | "submissionStatusEvent" | "vote" | "voteEvent" | "voteRestriction" | "riskEvent" | "galleryEntry" | "feeShare" | "tradeFeeEvent" | "creatorAccrual" | "payout" | "payoutItem" | "idempotencyRecord" | "adminAuditLog"
+    modelProps: "user" | "socialAccount" | "session" | "wallet" | "application" | "draft" | "draftRevision" | "submission" | "submissionAccessory" | "submissionStatusEvent" | "vote" | "voteEvent" | "voteRestriction" | "riskEvent" | "galleryEntry" | "feeShare" | "tradeFeeEvent" | "creatorAccrual" | "payout" | "payoutItem" | "idempotencyRecord" | "adminAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1026,6 +1027,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SubmissionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SubmissionCountAggregateOutputType> | number
+        }
+      }
+    }
+    SubmissionAccessory: {
+      payload: Prisma.$SubmissionAccessoryPayload<ExtArgs>
+      fields: Prisma.SubmissionAccessoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SubmissionAccessoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SubmissionAccessoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>
+        }
+        findFirst: {
+          args: Prisma.SubmissionAccessoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SubmissionAccessoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>
+        }
+        findMany: {
+          args: Prisma.SubmissionAccessoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>[]
+        }
+        create: {
+          args: Prisma.SubmissionAccessoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>
+        }
+        createMany: {
+          args: Prisma.SubmissionAccessoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SubmissionAccessoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>[]
+        }
+        delete: {
+          args: Prisma.SubmissionAccessoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>
+        }
+        update: {
+          args: Prisma.SubmissionAccessoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.SubmissionAccessoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SubmissionAccessoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SubmissionAccessoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.SubmissionAccessoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubmissionAccessoryPayload>
+        }
+        aggregate: {
+          args: Prisma.SubmissionAccessoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSubmissionAccessory>
+        }
+        groupBy: {
+          args: Prisma.SubmissionAccessoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubmissionAccessoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SubmissionAccessoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubmissionAccessoryCountAggregateOutputType> | number
         }
       }
     }
@@ -2162,6 +2237,18 @@ export const SubmissionScalarFieldEnum = {
 export type SubmissionScalarFieldEnum = (typeof SubmissionScalarFieldEnum)[keyof typeof SubmissionScalarFieldEnum]
 
 
+export const SubmissionAccessoryScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  category: 'category',
+  name: 'name',
+  normalizedName: 'normalizedName',
+  createdAt: 'createdAt'
+} as const
+
+export type SubmissionAccessoryScalarFieldEnum = (typeof SubmissionAccessoryScalarFieldEnum)[keyof typeof SubmissionAccessoryScalarFieldEnum]
+
+
 export const SubmissionStatusEventScalarFieldEnum = {
   id: 'id',
   submissionId: 'submissionId',
@@ -2181,6 +2268,7 @@ export const VoteScalarFieldEnum = {
   userId: 'userId',
   value: 'value',
   category: 'category',
+  categoryKey: 'categoryKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2847,6 +2935,7 @@ export type GlobalOmitConfig = {
   draft?: Prisma.DraftOmit
   draftRevision?: Prisma.DraftRevisionOmit
   submission?: Prisma.SubmissionOmit
+  submissionAccessory?: Prisma.SubmissionAccessoryOmit
   submissionStatusEvent?: Prisma.SubmissionStatusEventOmit
   vote?: Prisma.VoteOmit
   voteEvent?: Prisma.VoteEventOmit

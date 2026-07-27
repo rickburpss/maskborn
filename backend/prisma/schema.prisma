@@ -244,12 +244,26 @@ model Submission {
   votes            Vote[]
   voteEvents       VoteEvent[]
   statusEvents     SubmissionStatusEvent[]
+  accessories      SubmissionAccessory[]
   galleryEntry     GalleryEntry?
 
   @@unique([userId, mediaHash])
   @@index([status, publishedAt])
   @@index([kind, publishedAt])
   @@index([userId, kind, status])
+}
+
+model SubmissionAccessory {
+  id             String            @id @default(cuid())
+  submissionId   String
+  category       GeneratorCategory
+  name           String
+  normalizedName String
+  createdAt      DateTime          @default(now())
+  submission     Submission        @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@unique([category, normalizedName])
+  @@index([submissionId])
 }
 
 model SubmissionStatusEvent {
@@ -272,12 +286,13 @@ model Vote {
   userId       String
   value        VoteValue
   category     GeneratorCategory?
+  categoryKey  String     @default("ONE_OF_ONE")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([submissionId, userId])
+  @@unique([submissionId, userId, categoryKey])
   @@index([userId, updatedAt])
   @@index([submissionId, category, value])
 }

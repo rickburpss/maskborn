@@ -28,7 +28,7 @@ export function LatestCreations({ limit }: { limit?: number }) {
       previewAssetUrl: string;
       previewVariants: Array<{ id: string; label: string; categories: string[]; url: string }> | null;
       traitVotes: Array<{ category: string; upvotes: number; downvotes: number }>;
-      viewerVote: { value: "UP" | "DOWN"; category: string | null } | null;
+      viewerVotes: Array<{ value: "UP" | "DOWN"; category: string | null }>;
       upvoteCount: number;
       downvoteCount: number;
       publishedAt: string;
@@ -58,7 +58,7 @@ export function LatestCreations({ limit }: { limit?: number }) {
         previewVariants: item.kind === "TRAIT_EXTENSION" ? (item.previewVariants ?? []) : [],
         categories: item.categories,
         traitVotes: item.traitVotes,
-        viewerVote: item.viewerVote,
+        viewerVotes: item.viewerVotes,
       };
     });
   }, [feed.data]);

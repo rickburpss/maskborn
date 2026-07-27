@@ -8,10 +8,11 @@ process.env.NODE_ENV = "test";
 
 let app: Awaited<typeof import("../src/app.js")>["app"];
 let extractXPostId: Awaited<typeof import("../src/utils.js")>["extractXPostId"];
+let retryOnWriteConflict: Awaited<typeof import("../src/utils.js")>["retryOnWriteConflict"];
 
 beforeAll(async () => {
   ({ app } = await import("../src/app.js"));
-  ({ extractXPostId } = await import("../src/utils.js"));
+  ({ extractXPostId, retryOnWriteConflict } = await import("../src/utils.js"));
 });
 
 describe("API shell", () => {
@@ -51,16 +52,38 @@ describe("X post URLs", () => {
   });
 });
 
+describe("transaction retries", () => {
+  it("retries Prisma P2034 write conflicts and returns the successful result", async () => {
+    let attempts = 0;
+    const result = await retryOnWriteConflict(async () => {
+      attempts += 1;
+      if (attempts < 3) throw Object.assign(new Error("write conflict"), { code: "P2034" });
+      return "saved";
+    }, 3, 0);
+    expect(result).toBe("saved");
+    expect(attempts).toBe(3);
+  });
+
+  it("does not retry unrelated failures", async () => {
+    let attempts = 0;
+    await expect(retryOnWriteConflict(async () => {
+      attempts += 1;
+      throw Object.assign(new Error("bad query"), { code: "P2010" });
+    }, 3, 0)).rejects.toMatchObject({ code: "P2010" });
+    expect(attempts).toBe(1);
+  });
+});
+
 describe("submission artwork canonicalization", () => {
   it("keeps visible pixels, resolves later-layer overlaps, and sorts coordinates", () => {
     const source = sourcePixelDataSchema.parse({
       schemaVersion: 2,
       startBlank: false,
       layers: [
-        { id: "background-1", kind: "Background", visible: true, pixels: [{ x: 8, y: 4, color: "#f2b441" }] },
-        { id: "eyes-1", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#ffffff" }, { x: 2, y: 1, color: "#1a1815" }] },
-        { id: "eyes-2", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#d85b45" }] },
-        { id: "hidden", kind: "Special", visible: false, pixels: [{ x: 0, y: 0, color: "#ffffff" }] },
+        { id: "background-1", name: "Amber Field", kind: "Background", visible: true, pixels: [{ x: 8, y: 4, color: "#f2b441" }] },
+        { id: "eyes-1", name: "Bone Eyes", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#ffffff" }, { x: 2, y: 1, color: "#1a1815" }] },
+        { id: "eyes-2", name: "Red Eyes", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#d85b45" }] },
+        { id: "hidden", name: "Hidden Spark", kind: "Special", visible: false, pixels: [{ x: 0, y: 0, color: "#ffffff" }] },
       ],
     });
     const result = canonicalizePixelData(source);
@@ -75,12 +98,12 @@ describe("submission artwork canonicalization", () => {
       schemaVersion: 2,
       startBlank: false,
       layers: [
-        { id: "background", kind: "Background", visible: true, pixels: [{ x: 1, y: 1, color: "#F2B441" }] },
-        { id: "eyes", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#1A1815" }] },
+        { id: "background", name: "Amber Field", kind: "Background", visible: true, pixels: [{ x: 1, y: 1, color: "#F2B441" }] },
+        { id: "eyes", name: "Night Eyes", kind: "Eyes", visible: true, pixels: [{ x: 4, y: 9, color: "#1A1815" }] },
       ],
     });
     const variants = createTraitPreviewVariants(source, '<g id="maskborn-base"/>');
-    expect(variants.map((variant) => variant.label)).toEqual(["Background", "Eyes", "All"]);
+    expect(variants.map((variant) => variant.label)).toEqual(["Amber Field", "Night Eyes", "All"]);
     const all = variants[2]!.svg;
     expect(all.indexOf('x="1"')).toBeLessThan(all.indexOf("maskborn-base"));
     expect(all.indexOf("maskborn-base")).toBeLessThan(all.indexOf('x="4"'));

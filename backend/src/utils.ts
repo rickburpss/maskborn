@@ -28,3 +28,25 @@ export function extractXPostId(value: string) {
     return null;
   }
 }
+
+export async function retryOnWriteConflict<T>(
+  operation: () => Promise<T>,
+  maxAttempts = 3,
+  delayMs = 20,
+) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      const isWriteConflict = typeof error === "object"
+        && error !== null
+        && "code" in error
+        && (error as { code?: unknown }).code === "P2034";
+      if (!isWriteConflict || attempt === maxAttempts) throw error;
+      if (delayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+      }
+    }
+  }
+  throw new Error("Write-conflict retry loop ended unexpectedly.");
+}

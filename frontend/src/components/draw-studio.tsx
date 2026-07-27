@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Download, Eraser, Eye, EyeOff, Plus, RotateCcw, Save, Send, Trash2 } from "lucide-react";
+import { Check, Download, Eraser, Eye, EyeOff, Plus, Redo2, RotateCcw, Save, Send, Trash2, Undo2 } from "lucide-react";
 import NextImage from "next/image";
 import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import collection from "@/generated/collection.json";
@@ -28,6 +28,11 @@ function visiblePixels(layers: DraftLayer[]) {
   return layers.filter((layer) => layer.visible).flatMap((layer) => layer.pixels);
 }
 
+const wordCount = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
+const normalizedName = (value: string) => value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+const validAccessoryName = (value: string) =>
+  /^[\p{L}\p{N}][\p{L}\p{N} '&.-]*$/u.test(value.trim()) && value.trim().length >= 2 && value.trim().length <= 40;
+
 function PixelLayers({ layers }: { layers: DraftLayer[] }) {
   return (
     <>
@@ -50,16 +55,20 @@ export function DrawStudio() {
   const [previewBackground, setPreviewBackground] = useState(false);
   const [tool, setTool] = useState<"draw" | "erase">("draw");
   const [drawing, setDrawing] = useState(false);
+  const [brushSize, setBrushSize] = useState(1);
   const [published, setPublished] = useState(false);
   const [publishStatus, setPublishStatus] = useState<"idle" | "publishing" | "error">("idle");
   const [publishError, setPublishError] = useState("");
   const [saveStatus, setSaveStatus] = useState<"local" | "saving" | "saved" | "conflict">("local");
+  const [nameChecks, setNameChecks] = useState<Record<string, "checking" | "available" | "taken" | "error">>({});
   const lastSavedAt = useRef<string | null>(null);
+  const saveInFlight = useRef(false);
   const publishAttempt = useRef<{ hash: string; key: string } | null>(null);
   const pixels = useMemo(() => visiblePixels(draft.layers), [draft.layers]);
   const backgroundLayers = draft.layers.filter((layer) => layer.kind === "Background");
   const foregroundLayers = draft.layers.filter((layer) => layer.kind !== "Background");
   const activeLayer = draft.layers.find((layer) => layer.id === draft.activeLayerId);
+  const descriptionWords = wordCount(draft.description);
   const editingBackground = activeLayer?.kind === "Background" && !previewBackground;
   const selectedCompatibility = compatibilityGroups.find((group) => group.name === compatibilityGroup)!;
   const compatibilityCategory = collection.categories.find((category) => category.name === compatibilityGroup)!;
@@ -75,16 +84,86 @@ export function DrawStudio() {
     retry: false,
   });
   const usedTraitCategories = new Set(profile.data?.slots.traits.usedCategories ?? []);
-  const availableAccessoryKinds = accessoryKinds.filter((kind) => !usedTraitCategories.has(kind.toUpperCase()));
+  const availableAccessoryKinds = accessoryKinds.filter((kind) =>
+    !usedTraitCategories.has(kind.toUpperCase())
+    && !draft.layers.some((layer) => layer.kind === kind));
   const repeatedDraftTraits = draft.postType === "ACCESSORY"
     ? [...new Set(draft.layers.map((layer) => layer.kind))].filter((kind) => usedTraitCategories.has(kind.toUpperCase()))
     : [];
   const oneOfOneExhausted = (profile.data?.slots.oneOfOne.consumed ?? 0) >= (profile.data?.slots.oneOfOne.limit ?? 2);
+  const drawnLayers = draft.layers.filter((layer) => layer.visible && layer.pixels.length > 0);
+  const invalidNamedLayers = draft.postType === "ACCESSORY"
+    ? drawnLayers.filter((layer) => !validAccessoryName(layer.name))
+    : [];
+  const repeatedNameKeys = draft.postType === "ACCESSORY"
+    ? drawnLayers
+      .map((layer) => `${layer.kind}:${normalizedName(layer.name)}`)
+      .filter((key, index, keys) => keys.indexOf(key) !== index)
+    : [];
+  const takenNamedLayers = draft.postType === "ACCESSORY"
+    ? drawnLayers.filter((layer) => nameChecks[`${layer.kind}:${normalizedName(layer.name)}`] === "taken")
+    : [];
 
   useEffect(() => {
-    if (!draft.updatedAt || !session.data?.user?.id || !discordVerified || lastSavedAt.current === draft.updatedAt) return;
+    const target = activeLayer;
+    if (
+      draft.postType !== "ACCESSORY"
+      || !discordVerified
+      || !target
+      || !validAccessoryName(target.name)
+    ) return;
+    const key = `${target.kind}:${normalizedName(target.name)}`;
+    if (draft.layers.some((layer) =>
+      layer.id !== target.id
+      && layer.kind === target.kind
+      && normalizedName(layer.name) === normalizedName(target.name))) {
+      return;
+    }
+    const timer = window.setTimeout(async () => {
+      setNameChecks((current) => ({ ...current, [key]: "checking" }));
+      try {
+        const result = await apiFetch<{ available: boolean }>(
+          `/submissions/name-availability?category=${target.kind.toUpperCase()}&name=${encodeURIComponent(target.name)}`,
+        );
+        setNameChecks((current) => ({ ...current, [key]: result.available ? "available" : "taken" }));
+      } catch {
+        setNameChecks((current) => ({ ...current, [key]: "error" }));
+      }
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [activeLayer, discordVerified, draft.layers, draft.postType]);
+
+  useEffect(() => {
+    const handleHistoryKey = (event: KeyboardEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.matches("input, textarea, [contenteditable='true']")) return;
+      const key = event.key.toLowerCase();
+      if (key === "z" && !event.shiftKey) {
+        event.preventDefault();
+        draft.undo();
+      } else if (key === "y" || (key === "z" && event.shiftKey)) {
+        event.preventDefault();
+        draft.redo();
+      }
+    };
+    window.addEventListener("keydown", handleHistoryKey);
+    return () => window.removeEventListener("keydown", handleHistoryKey);
+  }, [draft]);
+
+  useEffect(() => {
+    if (
+      !draft.updatedAt
+      || !session.data?.user?.id
+      || !discordVerified
+      || lastSavedAt.current === draft.updatedAt
+      || saveInFlight.current
+    ) return;
     setSaveStatus("saving");
     const timer = window.setTimeout(async () => {
+      if (saveInFlight.current) return;
+      const savedUpdatedAt = draft.updatedAt;
+      saveInFlight.current = true;
       try {
         const result = await apiFetch<{ draft: { id: string; version: number } }>(
           `/drafts/${draft.serverId ?? "new"}`,
@@ -106,10 +185,12 @@ export function DrawStudio() {
             }),
           },
         );
-        lastSavedAt.current = draft.updatedAt;
+        lastSavedAt.current = savedUpdatedAt;
+        saveInFlight.current = false;
         draft.setServerState(result.draft.id, result.draft.version);
         setSaveStatus("saved");
       } catch (error) {
+        saveInFlight.current = false;
         setSaveStatus((error as Error & { code?: string }).code === "DRAFT_CONFLICT" ? "conflict" : "local");
       }
     }, 1200);
@@ -121,8 +202,14 @@ export function DrawStudio() {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = Math.max(0, Math.min(31, Math.floor((event.clientX - bounds.left) / bounds.width * 32)));
     const y = Math.max(0, Math.min(31, Math.floor((event.clientY - bounds.top) / bounds.height * 32)));
-    if (tool === "erase" || event.buttons === 2) draft.erasePixel(x, y);
-    else draft.paintPixel(x, y);
+    const startX = x - Math.floor((brushSize - 1) / 2);
+    const startY = y - Math.floor((brushSize - 1) / 2);
+    const coordinates = Array.from({ length: brushSize * brushSize }, (_, index) => ({
+      x: startX + (index % brushSize),
+      y: startY + Math.floor(index / brushSize),
+    })).filter((cell) => cell.x >= 0 && cell.x < 32 && cell.y >= 0 && cell.y < 32);
+    if (tool === "erase" || event.buttons === 2) draft.erasePixels(coordinates);
+    else draft.paintPixels(coordinates);
   };
 
   const loadBaseMarkup = async () => {
@@ -167,6 +254,26 @@ export function DrawStudio() {
       setPublishStatus("error");
       return;
     }
+    if (descriptionWords > 50) {
+      setPublishError("Description must be 50 words or fewer.");
+      setPublishStatus("error");
+      return;
+    }
+    if (invalidNamedLayers.length > 0) {
+      setPublishError("Every visible accessory containing pixels needs a valid name of 2–40 characters.");
+      setPublishStatus("error");
+      return;
+    }
+    if (repeatedNameKeys.length > 0) {
+      setPublishError("Accessories of the same type cannot share a name.");
+      setPublishStatus("error");
+      return;
+    }
+    if (takenNamedLayers.length > 0) {
+      setPublishError(`Already taken: ${takenNamedLayers.map((layer) => layer.name).join(", ")}.`);
+      setPublishStatus("error");
+      return;
+    }
     if (repeatedDraftTraits.length > 0) {
       setPublishError(`Already submitted trait type: ${repeatedDraftTraits.join(", ")}. Remove it and use one of the remaining types.`);
       setPublishStatus("error");
@@ -182,7 +289,7 @@ export function DrawStudio() {
       if (!publishAttempt.current || publishAttempt.current.hash !== mediaHash) {
         publishAttempt.current = { hash: mediaHash, key: crypto.randomUUID() };
       }
-      const categories = [...new Set(draft.layers.map((layer) => layer.kind.toUpperCase()))];
+      const categories = [...new Set(drawnLayers.map((layer) => layer.kind.toUpperCase()))];
       await apiFetch("/submissions", {
         method: "POST",
         headers: { "idempotency-key": publishAttempt.current.key },
@@ -226,6 +333,14 @@ export function DrawStudio() {
           <Save size={14} />
           {!discordVerified ? "Local only · link Discord to sync" : saveStatus === "saving" ? "Saving…" : saveStatus === "saved" ? "Saved to profile" : saveStatus === "conflict" ? "Newer draft found" : "Saved locally"}
         </div>
+        <div className="history-buttons" aria-label="Drawing history">
+          <button className="text-button" onClick={draft.undo} disabled={draft.past.length === 0} title="Undo (Ctrl+Z)">
+            <Undo2 size={14} /> Undo
+          </button>
+          <button className="text-button" onClick={draft.redo} disabled={draft.future.length === 0} title="Redo (Ctrl+Y)">
+            <Redo2 size={14} /> Redo
+          </button>
+        </div>
         <button className="text-button" onClick={draft.reset}><RotateCcw size={14} /> Reset</button>
         <button className="button button-dark" onClick={download}><Download size={15} /> Download</button>
         <button className="button button-amber" onClick={publish} disabled={publishStatus === "publishing" || repeatedDraftTraits.length > 0}>
@@ -241,8 +356,15 @@ export function DrawStudio() {
               <input value={draft.title} onChange={(event) => draft.setTitle(event.target.value)} />
             </label>
             <label className="plain-field">
-              <span>Description</span>
-              <textarea value={draft.description} onChange={(event) => draft.setDescription(event.target.value)} rows={3} />
+              <span>Description <small>{descriptionWords}/50 words</small></span>
+              <textarea
+                value={draft.description}
+                onChange={(event) => {
+                  if (wordCount(event.target.value) <= 50) draft.setDescription(event.target.value);
+                }}
+                maxLength={1200}
+                rows={3}
+              />
             </label>
             <div className="plain-field">
               <span>Post as</span>
@@ -268,6 +390,17 @@ export function DrawStudio() {
               <button className={tool === "draw" ? "active" : ""} onClick={() => setTool("draw")}>Pencil</button>
               <button className={tool === "erase" ? "active" : ""} onClick={() => setTool("erase")}><Eraser size={14} /> Erase</button>
             </div>
+            <label className="brush-size-control">
+              <span>Brush size <b>{brushSize} × {brushSize}</b></span>
+              <input
+                type="range"
+                min="1"
+                max="8"
+                step="1"
+                value={brushSize}
+                onChange={(event) => setBrushSize(Number(event.target.value))}
+              />
+            </label>
             <div className="pixel-palette">
               {palette.map((color) => (
                 <button
@@ -292,10 +425,15 @@ export function DrawStudio() {
               viewBox="0 0 32 32"
               shapeRendering="crispEdges"
               onContextMenu={(event) => event.preventDefault()}
-              onPointerDown={(event) => { setDrawing(true); event.currentTarget.setPointerCapture(event.pointerId); editAtPointer(event); }}
+              onPointerDown={(event) => {
+                setDrawing(true);
+                draft.beginStroke();
+                event.currentTarget.setPointerCapture(event.pointerId);
+                editAtPointer(event);
+              }}
               onPointerMove={(event) => drawing && editAtPointer(event)}
-              onPointerUp={() => setDrawing(false)}
-              onPointerCancel={() => setDrawing(false)}
+              onPointerUp={() => { setDrawing(false); draft.endStroke(); }}
+              onPointerCancel={() => { setDrawing(false); draft.endStroke(); }}
             >
               {editingBackground ? (
                 <PixelLayers layers={backgroundLayers} />
@@ -342,7 +480,36 @@ export function DrawStudio() {
                   if (layer.kind === "Background") setPreviewBackground(false);
                 }}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
-                  <div><b>{layer.kind}</b><small>{layer.pixels.length} pixels</small></div>
+                  <div>
+                    <input
+                      className="layer-name-input"
+                      value={layer.name}
+                      maxLength={40}
+                      aria-label={`Name this ${layer.kind} accessory`}
+                      onClick={(event) => event.stopPropagation()}
+                      onChange={(event) => draft.renameLayer(layer.id, event.target.value)}
+                    />
+                    <small>
+                      {layer.kind} · {layer.pixels.length} pixels
+                      {draft.postType === "ACCESSORY" && layer.name.trim().length >= 2 && (
+                        <>
+                          {" · "}
+                          {draft.layers.some((other) =>
+                            other.id !== layer.id
+                            && other.kind === layer.kind
+                            && normalizedName(other.name) === normalizedName(layer.name))
+                            ? "name repeated"
+                            : nameChecks[`${layer.kind}:${normalizedName(layer.name)}`] === "checking"
+                            ? "checking name…"
+                            : nameChecks[`${layer.kind}:${normalizedName(layer.name)}`] === "available"
+                              ? "name available"
+                              : nameChecks[`${layer.kind}:${normalizedName(layer.name)}`] === "taken"
+                                ? "name taken"
+                                : ""}
+                        </>
+                      )}
+                    </small>
+                  </div>
                   <button onClick={(event) => { event.stopPropagation(); draft.toggleLayer(layer.id); }} aria-label={`Toggle ${layer.kind}`}>
                     {layer.visible ? <Eye size={15} /> : <EyeOff size={15} />}
                   </button>

@@ -9,15 +9,26 @@ import { db } from "../db.js";
 import { ApiError } from "../errors.js";
 import { requireVerifiedDiscord } from "../middleware/auth.js";
 import { objectStorage } from "../object-storage.js";
-import { createTraitPreviewVariants, sourcePixelDataSchema } from "../submission-art.js";
-import { asyncRoute, requestHash, slugify } from "../utils.js";
+import {
+  createTraitPreviewVariants,
+  normalizeAccessoryName,
+  sourcePixelDataSchema,
+} from "../submission-art.js";
+import { asyncRoute, requestHash, retryOnWriteConflict, slugify } from "../utils.js";
 
 export const submissionsRouter = Router();
 
 const submissionBody = z.object({
   kind: z.nativeEnum(SubmissionKind),
   title: z.string().trim().min(2).max(100),
-  description: z.string().trim().min(1).max(1200),
+  description: z.string()
+    .trim()
+    .min(1, "Add a description.")
+    .max(1200)
+    .refine(
+      (value) => value.split(/\s+/).filter(Boolean).length <= 50,
+      "Description must be 50 words or fewer.",
+    ),
   generatorVersion: z.string().min(1).max(100),
   categories: z.array(z.nativeEnum(GeneratorCategory)).min(1).max(8),
   pixelData: sourcePixelDataSchema,
@@ -31,6 +42,14 @@ const submissionBody = z.object({
 });
 const communityTraitCategories = new Set<GeneratorCategory>(["BACKGROUND", "EYES", "HATS", "SPECIAL"]);
 let baseMarkupPromise: Promise<string> | null = null;
+
+const nameAvailabilityQuery = z.object({
+  category: z.nativeEnum(GeneratorCategory).refine(
+    (category) => communityTraitCategories.has(category),
+    "Choose Background, Eyes, Hats, or Special.",
+  ),
+  name: z.string().trim().min(2).max(40),
+});
 
 function getBaseMarkup() {
   baseMarkupPromise ??= readFile(path.resolve("assets", "base.svg"), "utf8")
@@ -49,6 +68,21 @@ function decodeSvgDataUrl(value: string) {
     throw new ApiError(422, "PREVIEW_INVALID", "The SVG preview could not be decoded.");
   }
 }
+
+submissionsRouter.get("/submissions/name-availability", requireVerifiedDiscord, asyncRoute(async (req, res) => {
+  const query = nameAvailabilityQuery.parse(req.query);
+  const normalizedName = normalizeAccessoryName(query.name);
+  const existing = await db.submissionAccessory.findUnique({
+    where: {
+      category_normalizedName: {
+        category: query.category,
+        normalizedName,
+      },
+    },
+    select: { id: true },
+  });
+  res.json({ available: !existing, normalizedName });
+}));
 
 submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async (req, res) => {
   const body = submissionBody.parse(req.body);
@@ -87,9 +121,101 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
   const pixelDataKey = `submissions/${userId}/${sourceHash}/source.json`;
   const previewAssetKey = `submissions/${userId}/${calculatedMediaHash}/preview.svg`;
 
-  const result = await db.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
+  const result = await retryOnWriteConflict(() => db.$transaction(async (tx) => {
+    await tx.$queryRaw<Array<{ locked: string }>>`
+      SELECT pg_advisory_xact_lock(hashtext(${userId}))::text AS locked
+    `;
+    const concurrentPrior = await tx.idempotencyRecord.findUnique({
+      where: { userId_scope_key: { userId, scope, key } },
+    });
+    if (concurrentPrior) {
+      if (concurrentPrior.requestHash !== hash) {
+        throw new ApiError(409, "IDEMPOTENCY_MISMATCH", "That key was used for a different submission.");
+      }
+      return {
+        statusCode: concurrentPrior.responseCode ?? 201,
+        response: concurrentPrior.responseBody,
+      };
+    }
+
+    const existingSubmission = await tx.submission.findUnique({
+      where: {
+        userId_mediaHash: {
+          userId,
+          mediaHash: calculatedMediaHash,
+        },
+      },
+    });
+    if (existingSubmission) {
+      const response = { submission: existingSubmission, duplicate: true };
+      await tx.idempotencyRecord.create({
+        data: {
+          userId,
+          scope,
+          key,
+          requestHash: hash,
+          responseCode: 200,
+          responseBody: response,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+      return { statusCode: 200, response };
+    }
+
     const categories = [...new Set(body.categories)];
+    const drawnLayers = body.pixelData.layers.filter((layer) => layer.visible && layer.pixels.length > 0);
+    const drawnCategories = [...new Set(drawnLayers.map((layer) => layer.kind.toUpperCase() as GeneratorCategory))];
+    if (
+      drawnCategories.length !== categories.length
+      || drawnCategories.some((category) => !categories.includes(category))
+    ) {
+      throw new ApiError(
+        422,
+        "DRAWN_CATEGORIES_MISMATCH",
+        "Submitted trait categories must exactly match the visible layers containing pixels.",
+        { submitted: categories, drawn: drawnCategories },
+      );
+    }
+    const namedAccessories = body.kind === "TRAIT_EXTENSION"
+      ? drawnLayers.map((layer) => ({
+        category: layer.kind.toUpperCase() as GeneratorCategory,
+        name: layer.name.trim().replace(/\s+/g, " "),
+        normalizedName: normalizeAccessoryName(layer.name),
+      }))
+      : [];
+    const repeatedCategory = namedAccessories.find((accessory, index) =>
+      namedAccessories.findIndex((candidate) => candidate.category === accessory.category) !== index);
+    if (repeatedCategory) {
+      throw new ApiError(
+        422,
+        "ONE_ACCESSORY_PER_CATEGORY",
+        `Add only one ${repeatedCategory.category.toLowerCase()} accessory per submission.`,
+      );
+    }
+    const localNameKeys = namedAccessories.map((accessory) => `${accessory.category}:${accessory.normalizedName}`);
+    const repeatedLocalName = localNameKeys.find((value, index) => localNameKeys.indexOf(value) !== index);
+    if (repeatedLocalName) {
+      throw new ApiError(422, "ACCESSORY_NAME_REPEATED", "Each accessory in a category needs a different name.");
+    }
+    if (namedAccessories.length > 0) {
+      const takenNames = await tx.submissionAccessory.findMany({
+        where: {
+          OR: namedAccessories.map((accessory) => ({
+            category: accessory.category,
+            normalizedName: accessory.normalizedName,
+          })),
+        },
+        select: { category: true, name: true, normalizedName: true },
+      });
+      if (takenNames.length > 0) {
+        throw new ApiError(
+          409,
+          "ACCESSORY_NAME_TAKEN",
+          `Already taken: ${takenNames.map((item) => `${item.name} (${item.category.toLowerCase()})`).join(", ")}.`,
+          { names: takenNames },
+        );
+      }
+    }
 
     if (body.kind === "ONE_OF_ONE") {
       const oneOfOneCount = await tx.submission.count({ where: { userId, kind: "ONE_OF_ONE" } });
@@ -163,7 +289,22 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
         previewVariants: storedVariants as Prisma.InputJsonValue,
         storageProvider: objectStorage.provider,
         sourcePostUrl: body.sourcePostUrl,
-        statusEvents: { create: { toStatus: "PENDING", actorId: userId, note: "Published by creator" } },
+      },
+    });
+    if (namedAccessories.length > 0) {
+      await tx.submissionAccessory.createMany({
+        data: namedAccessories.map((accessory) => ({
+          submissionId: submission.id,
+          ...accessory,
+        })),
+      });
+    }
+    await tx.submissionStatusEvent.create({
+      data: {
+        submissionId: submission.id,
+        toStatus: "PENDING",
+        actorId: userId,
+        note: "Published by creator",
       },
     });
     const response = { submission };
@@ -173,8 +314,8 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
         responseBody: response, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
     });
-    return response;
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    return { statusCode: 201, response };
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 
-  res.status(201).json(result);
+  res.status(result.statusCode).json(result.response);
 }));

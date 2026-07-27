@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
 import { requireVerifiedDiscord } from "../middleware/auth.js";
-import { asyncRoute } from "../utils.js";
+import { asyncRoute, retryOnWriteConflict } from "../utils.js";
 
 export const draftsRouter = Router();
 
@@ -44,7 +44,7 @@ draftsRouter.put("/drafts/:id", requireVerifiedDiscord, asyncRoute(async (req, r
     throw new ApiError(422, "EXPECTED_VERSION_REQUIRED", "Send the version you last loaded.");
   }
 
-  const draft = await db.$transaction(async (tx) => {
+  const draft = await retryOnWriteConflict(() => db.$transaction(async (tx) => {
     const owned = await tx.draft.findFirst({ where: { id: draftId, userId } });
     if (!owned) throw new ApiError(404, "DRAFT_NOT_FOUND", "That draft was not found.");
     if (owned.version !== body.expectedVersion) {
@@ -67,7 +67,7 @@ draftsRouter.put("/drafts/:id", requireVerifiedDiscord, asyncRoute(async (req, r
         revisions: { create: { version: nextVersion, payload: body.payload as Prisma.InputJsonValue } },
       },
     });
-  }, { isolationLevel: "Serializable" });
+  }, { isolationLevel: "Serializable" }));
 
   res.json({ draft });
 }));

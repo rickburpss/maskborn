@@ -58,6 +58,11 @@ export type DraftRevision = Prisma.DraftRevisionModel
  */
 export type Submission = Prisma.SubmissionModel
 /**
+ * Model SubmissionAccessory
+ * 
+ */
+export type SubmissionAccessory = Prisma.SubmissionAccessoryModel
+/**
  * Model SubmissionStatusEvent
  * 
  */

@@ -34,14 +34,16 @@ async function attachVoteBreakdown<T extends { id: string }>(items: T[], userId?
     submission.set(group.category, totals);
     breakdown.set(group.submissionId, submission);
   }
-  const ownVotes = new Map(viewerVotes.map((vote) => [vote.submissionId, {
-    value: vote.value,
-    category: vote.category,
-  }]));
+  const ownVotes = new Map<string, Array<{ value: typeof viewerVotes[number]["value"]; category: typeof viewerVotes[number]["category"] }>>();
+  for (const vote of viewerVotes) {
+    const votes = ownVotes.get(vote.submissionId) ?? [];
+    votes.push({ value: vote.value, category: vote.category });
+    ownVotes.set(vote.submissionId, votes);
+  }
   return items.map((item) => ({
     ...item,
     traitVotes: [...(breakdown.get(item.id)?.values() ?? [])],
-    viewerVote: ownVotes.get(item.id) ?? null,
+    viewerVotes: ownVotes.get(item.id) ?? [],
   }));
 }
 

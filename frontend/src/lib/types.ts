@@ -30,5 +30,5 @@ export type Artwork = {
   previewVariants?: ArtworkPreviewVariant[];
   categories?: string[];
   traitVotes?: TraitVoteTotal[];
-  viewerVote?: { value: "UP" | "DOWN"; category: string | null } | null;
+  viewerVotes?: Array<{ value: "UP" | "DOWN"; category: string | null }>;
 };

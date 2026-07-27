@@ -7,13 +7,16 @@ import { useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { apiFetch } from "@/lib/api";
+import { selectLargestPreviewVariant } from "@/lib/artwork-preview";
 import type { Artwork, VoteValue } from "@/lib/types";
 
 export function ArtCard({ artwork, index }: { artwork: Artwork; index: number }) {
-  const [vote, setVote] = useState<VoteValue>(artwork.viewerVote?.value.toLowerCase() as VoteValue ?? null);
-  const [voteCategory, setVoteCategory] = useState<string | null>(artwork.viewerVote?.category ?? null);
+  const [votes, setVotes] = useState<Record<string, VoteValue>>(() => Object.fromEntries(
+    (artwork.viewerVotes ?? []).map((vote) => [vote.category ?? "ONE_OF_ONE", vote.value.toLowerCase() as VoteValue]),
+  ));
   const [voteIntent, setVoteIntent] = useState<Exclude<VoteValue, null> | null>(null);
   const [counts, setCounts] = useState({ up: artwork.upvotes, down: artwork.downvotes });
+  const [voteError, setVoteError] = useState("");
   const [shared, setShared] = useState(false);
   const [activePreview, setActivePreview] = useState<string | null>(null);
   const session = useCurrentUser();
@@ -24,8 +27,7 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
   const upvotes = counts.up;
   const downvotes = counts.down;
   const selectedVariant = artwork.previewVariants?.find((variant) => variant.id === activePreview);
-  const defaultVariant = artwork.previewVariants?.reduce((largest, variant) =>
-    variant.categories.length > largest.categories.length ? variant : largest);
+  const defaultVariant = selectLargestPreviewVariant(artwork.previewVariants);
   const previewSource = selectedVariant?.url ?? artwork.previewAssetUrl;
 
   const voteCategories = artwork.categories ?? [];
@@ -34,17 +36,18 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
       window.dispatchEvent(new CustomEvent("maskborn:connect"));
       return;
     }
-    const previous = vote;
-    const previousCategory = voteCategory;
-    const previousCounts = counts;
-    const desired = previous === next ? null : next;
-    if (desired && voteCategories.length > 1 && !selectedCategory) {
+    if (voteCategories.length > 1 && !selectedCategory) {
       setVoteIntent(next);
       return;
     }
-    const category = selectedCategory ?? voteCategory ?? (voteCategories.length === 1 ? voteCategories[0] : null);
-    setVote(desired);
-    setVoteCategory(desired ? category : null);
+    const category = selectedCategory ?? (voteCategories.length === 1 ? voteCategories[0] : null);
+    const voteKey = category ?? "ONE_OF_ONE";
+    const previousVotes = { ...votes };
+    const previous = votes[voteKey] ?? null;
+    const previousCounts = counts;
+    const desired = previous === next ? null : next;
+    setVoteError("");
+    setVotes((current) => ({ ...current, [voteKey]: desired }));
     setCounts((current) => ({
       up: current.up + (previous === "up" ? -1 : 0) + (desired === "up" ? 1 : 0),
       down: current.down + (previous === "down" ? -1 : 0) + (desired === "down" ? 1 : 0),
@@ -61,13 +64,13 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
         headers: { "idempotency-key": crypto.randomUUID() },
         body: JSON.stringify({ value: desired?.toUpperCase() ?? null, category }),
       });
-      setVote(result.vote?.toLowerCase() as VoteValue);
-      setVoteCategory(result.category);
+      const resultKey = result.category ?? "ONE_OF_ONE";
+      setVotes((current) => ({ ...current, [resultKey]: result.vote?.toLowerCase() as VoteValue ?? null }));
       setCounts({ up: result.upvotes, down: result.downvotes });
     } catch (error) {
-      setVote(previous);
-      setVoteCategory(previousCategory);
+      setVotes(previousVotes);
       setCounts(previousCounts);
+      setVoteError((error as Error).message);
       if (["AUTH_REQUIRED", "DISCORD_REQUIRED"].includes((error as Error & { code?: string }).code ?? "")) {
         window.dispatchEvent(new CustomEvent("maskborn:connect"));
       }
@@ -136,9 +139,14 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
                 {voteCategories.map((category) => {
                   const totals = artwork.traitVotes?.find((item) => item.category === category);
                   return (
-                    <button type="button" key={category} onClick={() => applyVote(voteIntent, category)}>
+                    <button
+                      type="button"
+                      key={category}
+                      className={votes[category] ? `voted ${votes[category] === "down" ? "down" : ""}` : ""}
+                      onClick={() => applyVote(voteIntent, category)}
+                    >
                       {category.charAt(0) + category.slice(1).toLowerCase()}
-                      <small>{totals?.upvotes ?? 0} up</small>
+                      <small>{votes[category] ? `your vote: ${votes[category]}` : `${totals?.upvotes ?? 0} up`}</small>
                     </button>
                   );
                 })}
@@ -147,15 +155,19 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
             </motion.div>
           )}
         </AnimatePresence>
-        {voteCategory && (
-          <p className="vote-target">Your vote: {voteCategory.charAt(0) + voteCategory.slice(1).toLowerCase()}</p>
+        {Object.entries(votes).some(([, value]) => value) && (
+          <p className="vote-target">
+            Your votes: {Object.entries(votes).filter(([, value]) => value).map(([category, value]) =>
+              `${category === "ONE_OF_ONE" ? "Artwork" : category.charAt(0) + category.slice(1).toLowerCase()} ${value}`).join(" · ")}
+          </p>
         )}
+        {voteError && <p className="field-error vote-error">{voteError}</p>}
         <div className="vote-row">
-          <button className={vote === "up" ? "voted" : ""} onClick={() => applyVote("up")} aria-label={`Upvote ${artwork.title}`}>
-            <ThumbsUp size={15} fill={vote === "up" ? "currentColor" : "none"} /> {upvotes}
+          <button className={Object.values(votes).includes("up") ? "voted" : ""} onClick={() => applyVote("up")} aria-label={`Upvote ${artwork.title}`}>
+            <ThumbsUp size={15} fill={Object.values(votes).includes("up") ? "currentColor" : "none"} /> {upvotes}
           </button>
-          <button className={vote === "down" ? "voted down" : ""} onClick={() => applyVote("down")} aria-label={`Downvote ${artwork.title}`}>
-            <ThumbsDown size={15} fill={vote === "down" ? "currentColor" : "none"} /> {downvotes}
+          <button className={Object.values(votes).includes("down") ? "voted down" : ""} onClick={() => applyVote("down")} aria-label={`Downvote ${artwork.title}`}>
+            <ThumbsDown size={15} fill={Object.values(votes).includes("down") ? "currentColor" : "none"} /> {downvotes}
           </button>
           <button className="share-button" onClick={share} aria-label={`Share ${artwork.title}`}>
             <AnimatePresence mode="wait">

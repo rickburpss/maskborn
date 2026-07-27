@@ -59,6 +59,7 @@ export const ModelName = {
   Draft: 'Draft',
   DraftRevision: 'DraftRevision',
   Submission: 'Submission',
+  SubmissionAccessory: 'SubmissionAccessory',
   SubmissionStatusEvent: 'SubmissionStatusEvent',
   Vote: 'Vote',
   VoteEvent: 'VoteEvent',
@@ -222,6 +223,18 @@ export const SubmissionScalarFieldEnum = {
 export type SubmissionScalarFieldEnum = (typeof SubmissionScalarFieldEnum)[keyof typeof SubmissionScalarFieldEnum]
 
 
+export const SubmissionAccessoryScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  category: 'category',
+  name: 'name',
+  normalizedName: 'normalizedName',
+  createdAt: 'createdAt'
+} as const
+
+export type SubmissionAccessoryScalarFieldEnum = (typeof SubmissionAccessoryScalarFieldEnum)[keyof typeof SubmissionAccessoryScalarFieldEnum]
+
+
 export const SubmissionStatusEventScalarFieldEnum = {
   id: 'id',
   submissionId: 'submissionId',
@@ -241,6 +254,7 @@ export const VoteScalarFieldEnum = {
   userId: 'userId',
   value: 'value',
   category: 'category',
+  categoryKey: 'categoryKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

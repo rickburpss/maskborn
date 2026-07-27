@@ -14,17 +14,19 @@ type Props = {
   initialUpvotes: number;
   initialDownvotes: number;
   traitVotes: TraitVoteTotal[];
-  viewerVote: { value: "UP" | "DOWN"; category: string | null } | null;
+  viewerVotes: Array<{ value: "UP" | "DOWN"; category: string | null }>;
 };
 
 const label = (category: string) => category.charAt(0) + category.slice(1).toLowerCase();
 
 export function ArtworkVoteControls(props: Props) {
   const session = useCurrentUser();
-  const [vote, setVote] = useState<VoteValue>(props.viewerVote?.value.toLowerCase() as VoteValue ?? null);
-  const [category, setCategory] = useState<string | null>(props.viewerVote?.category ?? null);
+  const [votes, setVotes] = useState<Record<string, VoteValue>>(() => Object.fromEntries(
+    props.viewerVotes.map((vote) => [vote.category ?? "ONE_OF_ONE", vote.value.toLowerCase() as VoteValue]),
+  ));
   const [intent, setIntent] = useState<Exclude<VoteValue, null> | null>(null);
   const [counts, setCounts] = useState({ up: props.initialUpvotes, down: props.initialDownvotes });
+  const [voteError, setVoteError] = useState("");
   const verified = session.data?.user?.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   );
@@ -34,18 +36,20 @@ export function ArtworkVoteControls(props: Props) {
       window.dispatchEvent(new CustomEvent("maskborn:connect"));
       return;
     }
-    const desired = vote === next ? null : next;
-    if (desired && props.categories.length > 1 && !target) {
+    if (props.categories.length > 1 && !target) {
       setIntent(next);
       return;
     }
-    const previous = { vote, category, counts };
-    const selected = target ?? category ?? (props.categories.length === 1 ? props.categories[0] : null);
-    setVote(desired);
-    setCategory(desired ? selected : null);
+    const selected = target ?? (props.categories.length === 1 ? props.categories[0] : null);
+    const voteKey = selected ?? "ONE_OF_ONE";
+    const currentVote = votes[voteKey] ?? null;
+    const desired = currentVote === next ? null : next;
+    const previous = { votes: { ...votes }, counts };
+    setVoteError("");
+    setVotes((current) => ({ ...current, [voteKey]: desired }));
     setCounts((current) => ({
-      up: current.up + (vote === "up" ? -1 : 0) + (desired === "up" ? 1 : 0),
-      down: current.down + (vote === "down" ? -1 : 0) + (desired === "down" ? 1 : 0),
+      up: current.up + (currentVote === "up" ? -1 : 0) + (desired === "up" ? 1 : 0),
+      down: current.down + (currentVote === "down" ? -1 : 0) + (desired === "down" ? 1 : 0),
     }));
     setIntent(null);
     try {
@@ -59,13 +63,13 @@ export function ArtworkVoteControls(props: Props) {
         headers: { "idempotency-key": crypto.randomUUID() },
         body: JSON.stringify({ value: desired?.toUpperCase() ?? null, category: selected }),
       });
-      setVote(result.vote?.toLowerCase() as VoteValue);
-      setCategory(result.category);
+      const resultKey = result.category ?? "ONE_OF_ONE";
+      setVotes((current) => ({ ...current, [resultKey]: result.vote?.toLowerCase() as VoteValue ?? null }));
       setCounts({ up: result.upvotes, down: result.downvotes });
     } catch (error) {
-      setVote(previous.vote);
-      setCategory(previous.category);
+      setVotes(previous.votes);
       setCounts(previous.counts);
+      setVoteError((error as Error).message);
       if (["AUTH_REQUIRED", "DISCORD_REQUIRED"].includes((error as Error & { code?: string }).code ?? "")) {
         window.dispatchEvent(new CustomEvent("maskborn:connect"));
       }
@@ -80,8 +84,13 @@ export function ArtworkVoteControls(props: Props) {
             <span>{intent === "up" ? "Upvote which trait?" : "Downvote which trait?"}</span>
             <div>
               {props.categories.map((item) => (
-                <button type="button" key={item} onClick={() => submit(intent, item)}>
-                  {label(item)} <small>{props.traitVotes.find((total) => total.category === item)?.upvotes ?? 0} up</small>
+                <button
+                  type="button"
+                  key={item}
+                  className={votes[item] ? `voted ${votes[item] === "down" ? "down" : ""}` : ""}
+                  onClick={() => submit(intent, item)}
+                >
+                  {label(item)} <small>{votes[item] ? `your vote: ${votes[item]}` : `${props.traitVotes.find((total) => total.category === item)?.upvotes ?? 0} up`}</small>
                 </button>
               ))}
             </div>
@@ -89,10 +98,16 @@ export function ArtworkVoteControls(props: Props) {
           </motion.div>
         )}
       </AnimatePresence>
-      {category && <p className="vote-target">Your vote: {label(category)}</p>}
+      {Object.entries(votes).some(([, value]) => value) && (
+        <p className="vote-target">
+          Your votes: {Object.entries(votes).filter(([, value]) => value).map(([category, value]) =>
+            `${category === "ONE_OF_ONE" ? "Artwork" : label(category)} ${value}`).join(" · ")}
+        </p>
+      )}
+      {voteError && <p className="field-error vote-error">{voteError}</p>}
       <div className="detail-vote-buttons">
-        <button className={vote === "up" ? "voted" : ""} onClick={() => submit("up")}><ThumbsUp size={17} /> {counts.up} Upvote</button>
-        <button className={vote === "down" ? "voted down" : ""} onClick={() => submit("down")}><ThumbsDown size={17} /> {counts.down} Downvote</button>
+        <button className={Object.values(votes).includes("up") ? "voted" : ""} onClick={() => submit("up")}><ThumbsUp size={17} /> {counts.up} Upvote</button>
+        <button className={Object.values(votes).includes("down") ? "voted down" : ""} onClick={() => submit("down")}><ThumbsDown size={17} /> {counts.down} Downvote</button>
       </div>
     </div>
   );

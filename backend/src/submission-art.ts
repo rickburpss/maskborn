@@ -12,6 +12,11 @@ const pixelSchema = z.object({
 const layerSchema = z.object({
   id: z.string().min(1).max(100),
   kind: z.enum(communityLayerKinds),
+  name: z.string()
+    .trim()
+    .min(2, "Give this accessory a name with at least 2 characters.")
+    .max(40, "Accessory names must be 40 characters or fewer.")
+    .regex(/^[\p{L}\p{N}][\p{L}\p{N} '&.-]*$/u, "Use letters, numbers, spaces, apostrophes, periods, ampersands, or hyphens."),
   visible: z.boolean(),
   pixels: z.array(pixelSchema).max(1024),
 });
@@ -23,6 +28,10 @@ export const sourcePixelDataSchema = z.object({
 });
 
 export type SourcePixelData = z.infer<typeof sourcePixelDataSchema>;
+
+export function normalizeAccessoryName(value: string) {
+  return value.trim().replace(/\s+/g, " ").normalize("NFKC").toLocaleLowerCase("en");
+}
 
 export type CanonicalTraitPixels = {
   kind: typeof communityLayerKinds[number];
@@ -62,6 +71,9 @@ export function createTraitPreviewVariants(source: SourcePixelData, baseMarkup: 
   const canonical = canonicalizePixelData(source);
   const present = communityLayerKinds.filter((kind) => canonical.traits.some((trait) => trait.kind === kind));
   const pixelsByKind = new Map(canonical.traits.map((trait) => [trait.kind, trait.pixels]));
+  const namesByKind = new Map(source.layers
+    .filter((layer) => layer.visible && layer.pixels.length > 0)
+    .map((layer) => [layer.kind, layer.name]));
   const rects = (kind: typeof communityLayerKinds[number]) => (pixelsByKind.get(kind) ?? [])
     .map(([x, y, color]) => `<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`)
     .join("");
@@ -71,7 +83,9 @@ export function createTraitPreviewVariants(source: SourcePixelData, baseMarkup: 
     const background = categories.includes("Background") ? rects("Background") : "";
     const foreground = categories.filter((kind) => kind !== "Background").map(rects).join("");
     const id = categories.map((kind) => kind.toLowerCase()).join("-");
-    const label = categories.length === present.length && present.length > 1 ? "All" : categories.join(" + ");
+    const label = categories.length === present.length && present.length > 1
+      ? "All"
+      : categories.map((kind) => namesByKind.get(kind) ?? kind).join(" + ");
     return {
       id,
       label,

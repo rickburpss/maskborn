@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
 import { requireVerifiedDiscord } from "../middleware/auth.js";
-import { asyncRoute, requestHash, signalHash } from "../utils.js";
+import { asyncRoute, requestHash, retryOnWriteConflict, signalHash } from "../utils.js";
 
 export const votesRouter = Router();
 const voteBody = z.object({
@@ -68,7 +68,16 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
     throw new ApiError(429, "VOTE_RESTRICTED", "Voting is paused for six hours after an unusual burst.", { expiresAt });
   }
 
-  const result = await db.$transaction(async (tx) => {
+  const result = await retryOnWriteConflict(() => db.$transaction(async (tx) => {
+    const concurrentPrior = await tx.idempotencyRecord.findUnique({
+      where: { userId_scope_key: { userId, scope, key: idempotencyKey } },
+    });
+    if (concurrentPrior) {
+      if (concurrentPrior.requestHash !== payloadHash) {
+        throw new ApiError(409, "IDEMPOTENCY_MISMATCH", "That idempotency key was already used for a different vote.");
+      }
+      return concurrentPrior.responseBody;
+    }
     const submission = await tx.submission.findUnique({
       where: { id: submissionId },
       select: {
@@ -89,20 +98,21 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
       throw new ApiError(409, "VOTE_FROZEN", "This artwork's 24-hour voting window has closed.", { closesAt });
     }
 
-    const existing = await tx.vote.findUnique({
-      where: { submissionId_userId: { submissionId: submission.id, userId } },
-    });
-    const fromValue = existing?.value ?? null;
     const requestedCategory = submission.kind === "ONE_OF_ONE"
       ? null
       : body.category ?? (submission.categories.length === 1 ? submission.categories[0] : null);
-    if (body.value !== null && submission.kind === "TRAIT_EXTENSION") {
+    if (submission.kind === "TRAIT_EXTENSION") {
       if (!requestedCategory || !submission.categories.includes(requestedCategory)) {
-        throw new ApiError(422, "VOTE_TRAIT_REQUIRED", "Choose which trait this vote is for.");
+        throw new ApiError(422, "VOTE_TRAIT_REQUIRED", "Choose which trait this vote or removal is for.");
       }
     }
-    const category = body.value === null ? existing?.category ?? requestedCategory : requestedCategory;
-    if (fromValue === body.value && existing?.category === category) {
+    const category = requestedCategory;
+    const categoryKey = category ?? "ONE_OF_ONE";
+    const existing = await tx.vote.findFirst({
+      where: { submissionId: submission.id, userId, category },
+    });
+    const fromValue = existing?.value ?? null;
+    if (fromValue === body.value) {
       const response = {
         vote: fromValue,
         category,
@@ -130,11 +140,16 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
     if (body.value === null && existing) {
       await tx.vote.delete({ where: { id: existing.id } });
     } else if (body.value !== null) {
-      await tx.vote.upsert({
-        where: { submissionId_userId: { submissionId: submission.id, userId } },
-        create: { submissionId: submission.id, userId, value: body.value, category },
-        update: { value: body.value, category },
-      });
+      if (existing) {
+        await tx.vote.update({
+          where: { id: existing.id },
+          data: { value: body.value, category, categoryKey },
+        });
+      } else {
+        await tx.vote.create({
+          data: { submissionId: submission.id, userId, value: body.value, category, categoryKey },
+        });
+      }
     }
 
     const updated = await tx.submission.update({
@@ -171,7 +186,7 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
       },
     });
     return response;
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 
   res.json(result);
 }));

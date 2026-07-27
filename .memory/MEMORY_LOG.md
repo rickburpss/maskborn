@@ -272,3 +272,49 @@
 - Updated `PLAN.md` for category-targeted votes and trait ranking.
 - Verification passed: Prisma generation and validation, backend TypeScript/build and
   7 tests; frontend TypeScript, ESLint, production build, and 16 renderer tests.
+
+## 2026-07-27 — Prisma publish lock and draft-save conflict fix
+
+- Cast the PostgreSQL advisory transaction lock result to `text` so Prisma 7's Neon
+  adapter no longer attempts to deserialize PostgreSQL's unsupported `void` type when
+  publishing a submission.
+- Added a bounded three-attempt retry with short linear backoff for Prisma `P2034`
+  write conflicts around serializable draft-save transactions.
+- Serialized draw-studio autosaves in the browser so a single tab does not send
+  overlapping versioned draft updates; edits made during a save are queued by the
+  next store update.
+- Added unit coverage for retry success and non-retryable errors. Backend and frontend
+  type checks, all 25 tests, and both production builds passed.
+
+## 2026-07-27 — Empty artwork preview safety
+
+- Prevented community and gallery artwork cards from reducing an empty
+  `previewVariants` array. Submissions without generated trait previews now fall back
+  to their main preview asset.
+- Added regression coverage for empty and populated preview collections.
+- Frontend TypeScript, ESLint, all 18 tests, and the production build passed.
+
+## 2026-07-27 — Duplicate publish replay handling
+
+- Preserved the `Submission(userId, mediaHash)` uniqueness rule while making repeat
+  publishes content-idempotent across browser sessions and newly generated request
+  keys. The API now returns the existing submission with HTTP 200 instead of leaking
+  Prisma `P2002`.
+- Rechecks the idempotency record after acquiring the per-user transaction lock, so
+  rapid concurrent requests reuse the first committed response.
+- Added bounded `P2034` retry protection to the serializable publish transaction.
+- Backend TypeScript, all 9 tests, and the production build passed.
+
+## 2026-07-28 — Guarded artwork reset script
+
+- Added `backend/scripts/clear-artwork-data.js` and the `npm run clear:artwork`
+  command. Its default mode is a read-only preview of submissions, votes, vote events,
+  status events, accessory names, gallery entries, fee shares, and accruals.
+- Destructive execution requires both `--execute` and the exact confirmation phrase
+  `--confirm DELETE_ALL_ARTWORK`. It clears submissions and their cascading vote and
+  artwork records, gallery/fee-share records, and stale publish/vote idempotency
+  records in one transaction.
+- The script refuses deletion when creator accruals exist and preserves drafts, users,
+  applications, risk records, and object-storage files.
+- JavaScript syntax and backend TypeScript checks passed. The Neon dry run succeeded
+  and made no changes.

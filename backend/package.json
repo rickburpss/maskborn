@@ -11,6 +11,7 @@
     "prisma:generate": "prisma generate",
     "prisma:validate": "prisma validate",
     "export:submission": "tsx scripts/export-submission.ts",
+    "clear:artwork": "tsx scripts/clear-artwork-data.js",
     "test": "vitest run"
   },
   "dependencies": {
