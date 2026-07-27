@@ -26,8 +26,8 @@ export function ApplicationForm() {
   const twitter = useSessionStore((state) => state.twitter);
   const storedWallet = useSessionStore((state) => state.wallet);
   const session = useCurrentUser();
-  const xAccount = session.data?.user.socialAccounts.find((account) => account.provider === "X_MANUAL");
-  const discordVerified = session.data?.user.socialAccounts.some(
+  const xAccount = session.data?.user?.socialAccounts.find((account) => account.provider === "X_MANUAL");
+  const discordVerified = session.data?.user?.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   ) ?? false;
   const [selection, setSelection] = useState<TraitSelection>([0, 0, 0, 0, 0, 0, 0, 0]);
@@ -109,7 +109,7 @@ export function ApplicationForm() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      let walletId = session.data?.user.wallets.find((item) => item.address.toLowerCase() === wallet.toLowerCase())?.id;
+      let walletId = session.data?.user?.wallets.find((item) => item.address.toLowerCase() === wallet.toLowerCase())?.id;
       if (!walletId) {
         const result = await apiFetch<{ wallet: { id: string } }>("/wallet", {
           method: "PUT",

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ArtCard } from "@/components/art-card";
@@ -8,10 +8,13 @@ import { SectionHeading } from "@/components/section-heading";
 import { apiFetch } from "@/lib/api";
 import type { ArtType, Artwork } from "@/lib/types";
 
-const options = ["Newest", "Most upvoted", "Most downvoted", "Least voted", "No votes"];
+const options = ["Newest", "Highest likes", "Highest trait likes", "Most downvoted", "Least voted", "No votes"];
+const categories = ["All work", "1/1", "Background", "Eyes", "Hats", "Special"];
 
 export function LatestCreations({ limit }: { limit?: number }) {
   const [sort, setSort] = useState("Newest");
+  const [category, setCategory] = useState("All work");
+  const [search, setSearch] = useState("");
   const feed = useQuery({
     queryKey: ["submissions", "feed"],
     queryFn: () => apiFetch<{ items: Array<{
@@ -24,6 +27,8 @@ export function LatestCreations({ limit }: { limit?: number }) {
       status: string;
       previewAssetUrl: string;
       previewVariants: Array<{ id: string; label: string; categories: string[]; url: string }> | null;
+      traitVotes: Array<{ category: string; upvotes: number; downvotes: number }>;
+      viewerVote: { value: "UP" | "DOWN"; category: string | null } | null;
       upvoteCount: number;
       downvoteCount: number;
       publishedAt: string;
@@ -51,17 +56,34 @@ export function LatestCreations({ limit }: { limit?: number }) {
         submittedAt: new Date(item.publishedAt).toLocaleDateString(),
         previewAssetUrl: item.previewAssetUrl,
         previewVariants: item.kind === "TRAIT_EXTENSION" ? (item.previewVariants ?? []) : [],
+        categories: item.categories,
+        traitVotes: item.traitVotes,
+        viewerVote: item.viewerVote,
       };
     });
   }, [feed.data]);
   const sorted = useMemo(() => {
     const list = [...source];
-    if (sort === "Most upvoted") list.sort((a, b) => b.upvotes - a.upvotes);
-    if (sort === "Most downvoted") list.sort((a, b) => b.downvotes - a.downvotes);
-    if (sort === "Least voted") list.sort((a, b) => (a.upvotes + a.downvotes) - (b.upvotes + b.downvotes));
-    if (sort === "No votes") return list.filter((art) => art.upvotes + art.downvotes === 0);
-    return list;
-  }, [sort, source]);
+    const normalizedSearch = search.trim().toLowerCase();
+    const filtered = list.filter((art) => {
+      const matchesCategory = category === "All work"
+        || (category === "1/1" ? art.type === "1/1" : art.categories?.includes(category.toUpperCase()));
+      const matchesSearch = !normalizedSearch
+        || `${art.title} ${art.creator} ${art.description}`.toLowerCase().includes(normalizedSearch);
+      return matchesCategory && matchesSearch;
+    });
+    if (sort === "Highest likes") filtered.sort((a, b) => b.upvotes - a.upvotes);
+    if (sort === "Highest trait likes") {
+      const trait = category.toUpperCase();
+      filtered.sort((a, b) =>
+        (b.traitVotes?.find((item) => item.category === trait)?.upvotes ?? 0)
+        - (a.traitVotes?.find((item) => item.category === trait)?.upvotes ?? 0));
+    }
+    if (sort === "Most downvoted") filtered.sort((a, b) => b.downvotes - a.downvotes);
+    if (sort === "Least voted") filtered.sort((a, b) => (a.upvotes + a.downvotes) - (b.upvotes + b.downvotes));
+    if (sort === "No votes") return filtered.filter((art) => art.upvotes + art.downvotes === 0);
+    return filtered;
+  }, [category, search, sort, source]);
   const visible = typeof limit === "number" ? sorted.slice(0, limit) : sorted;
 
   return (
@@ -75,10 +97,29 @@ export function LatestCreations({ limit }: { limit?: number }) {
       />
       <div className="filter-row">
         <div className="filter-label"><SlidersHorizontal size={15} /> Sort the feed</div>
+        {!limit && (
+          <label className="filter-search">
+            <Search size={15} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search artwork or creator" />
+          </label>
+        )}
+        <label className="select-wrap">
+          <span className="sr-only">Filter creations by trait</span>
+          <select value={category} onChange={(event) => {
+            setCategory(event.target.value);
+            if (event.target.value === "All work" || event.target.value === "1/1") {
+              setSort((current) => current === "Highest trait likes" ? "Highest likes" : current);
+            }
+          }}>
+            {categories.map((option) => <option key={option}>{option}</option>)}
+          </select>
+          <ChevronDown size={15} />
+        </label>
         <label className="select-wrap">
           <span className="sr-only">Sort creations</span>
           <select value={sort} onChange={(event) => setSort(event.target.value)}>
-            {options.map((option) => <option key={option}>{option}</option>)}
+            {options.filter((option) => option !== "Highest trait likes" || !["All work", "1/1"].includes(category))
+              .map((option) => <option key={option}>{option}</option>)}
           </select>
           <ChevronDown size={15} />
         </label>

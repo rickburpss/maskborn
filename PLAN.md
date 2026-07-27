@@ -162,8 +162,9 @@ assets in this repository before build.
 
 - Art cards show preview, type, title, X username linking to the creator's X profile,
   submission time, gallery state, vote controls, totals, and share action.
-- Sort/filter options: newest, oldest, most upvoted, most downvoted, least voted,
-  unvoted, 1/1, and accessories/traits.
+- Sort/filter options include newest, highest likes, highest trait likes, most
+  downvoted, least voted, unvoted, 1/1, and individual community traits. The full
+  community page also searches titles, descriptions, and creator names.
 - Logged-out voting opens Connect. A restricted voter sees the exact unlock time.
 - Optimistic voting is rolled back if the API rejects the transaction.
 
@@ -233,6 +234,10 @@ There are no X API credentials or paid X API calls in the website flow.
 
 - Database uniqueness on `(artworkId, userId)` guarantees one current vote per artwork.
 - Vote values are `UP` or `DOWN`. The same endpoint handles add, switch, and remove.
+- A vote on a multi-trait submission must name Background, Eyes, Hats, or Special as
+  its target. One-trait posts infer that category, while 1/1 votes have no category.
+- Submission counters remain the overall score. Category-specific vote totals are
+  derived from current Vote records for trait ranking and display.
 - The mutability deadline is `submission.publishedAt + 24 hours`. Server time is the
   authority. Votes are frozen at the deadline.
 - Vote counters change in the same database transaction as the vote record.

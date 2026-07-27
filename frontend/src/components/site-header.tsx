@@ -11,6 +11,7 @@ import { useSessionStore } from "@/store/session";
 
 const navItems = [
   { href: "/", label: "Home", primary: true },
+  { href: "/collection", label: "Collection", primary: false },
   { href: "/gallery", label: "Gallery", primary: true },
   { href: "/draw", label: "Draw", primary: false },
   { href: "/apply", label: "Apply", primary: true },
@@ -22,17 +23,21 @@ export function SiteHeader() {
   const { scrollY } = useScroll();
   const [compact, setCompact] = useState(false);
   const [mobile, setMobile] = useState(false);
+  const [navHovered, setNavHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
   const localTwitter = useSessionStore((state) => state.twitter);
   const session = useCurrentUser();
-  const xAccount = session.data?.user.socialAccounts.find((account) => account.provider === "X_MANUAL");
-  const discordVerified = session.data?.user.socialAccounts.some(
+  const xAccount = session.data?.user?.socialAccounts.find((account) => account.provider === "X_MANUAL");
+  const discordVerified = session.data?.user?.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   ) ?? false;
   const twitter = xAccount?.username
     ? `@${xAccount.username}`
     : localTwitter;
+  const visibleNavItems = session.data?.user?.role === "ADMIN"
+    ? [...navItems, { href: "/admin", label: "Admin", primary: false }]
+    : navItems;
 
   useMotionValueEvent(scrollY, "change", (value) => setCompact(value > 90));
 
@@ -50,7 +55,7 @@ export function SiteHeader() {
     return () => query.removeEventListener("change", sync);
   }, []);
 
-  const collapsed = compact || mobile;
+  const collapsed = mobile || (compact && !navHovered);
 
   return (
     <>
@@ -62,15 +67,24 @@ export function SiteHeader() {
       >
         <motion.nav
           className="nav-capsule"
-          animate={{ width: collapsed ? "min(590px, calc(100vw - 138px))" : "min(790px, calc(100vw - 138px))" }}
+          animate={{
+            width: mobile
+              ? "min(590px, calc(100vw - 138px))"
+              : collapsed
+                ? "min(610px, calc(100vw - 160px))"
+                : "min(940px, calc(100vw - 160px))",
+          }}
           transition={{ type: "spring", stiffness: 260, damping: 28 }}
           aria-label="Main navigation"
+          onMouseEnter={() => setNavHovered(true)}
+          onMouseLeave={() => setNavHovered(false)}
+          onFocus={() => setNavHovered(true)}
         >
           <Link className="wordmark" href="/" aria-label="Mask Born Order home">
             MB<span>O</span>
           </Link>
           <div className="nav-links">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <AnimatePresence key={item.href} initial={false}>
                 {(!collapsed || item.primary) && (
                   <motion.div
@@ -87,7 +101,7 @@ export function SiteHeader() {
             ))}
           </div>
           <AnimatePresence>
-            {collapsed && (
+            {mobile && (
               <motion.button
                 className="menu-trigger"
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -108,14 +122,14 @@ export function SiteHeader() {
       </motion.header>
 
       <AnimatePresence>
-        {menuOpen && collapsed && (
+        {menuOpen && mobile && (
           <motion.div
             className="nav-drawer"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
           >
-            {navItems.map((item, index) => (
+            {visibleNavItems.map((item, index) => (
               <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
                 <span>0{index + 1}</span>{item.label}
               </Link>

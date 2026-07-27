@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Router, type Response } from "express";
 import { z } from "zod";
-import { config } from "../config.js";
+import { adminDiscordIds, config } from "../config.js";
 import { db } from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { asyncRoute } from "../utils.js";
@@ -11,12 +11,15 @@ export const authRouter = Router();
 const sessionHash = (value: string) =>
   createHash("sha256").update(`${config.SESSION_PEPPER}:${value}`).digest("hex");
 const sessionLifetimeMs = 365 * 24 * 60 * 60 * 1000;
+const cookieSecurity = {
+  secure: config.NODE_ENV === "production",
+  sameSite: config.NODE_ENV === "production" ? "none" as const : "lax" as const,
+};
 
 const setSessionCookie = (res: Response, token: string) => {
   res.cookie("mbo_session", token, {
     httpOnly: true,
-    secure: config.NODE_ENV === "production",
-    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
+    ...cookieSecurity,
     maxAge: sessionLifetimeMs,
   });
 };
@@ -97,8 +100,7 @@ authRouter.get("/auth/discord/start", asyncRoute(async (_req, res) => {
   const state = randomBytes(24).toString("base64url");
   res.cookie("mbo_discord_state", state, {
     httpOnly: true,
-    secure: config.NODE_ENV === "production",
-    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
+    ...cookieSecurity,
     maxAge: 10 * 60 * 1000,
   });
   const params = new URLSearchParams({
@@ -174,6 +176,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
   const avatarUrl = profile.avatar
     ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.${profile.avatar.startsWith("a_") ? "gif" : "png"}`
     : null;
+  const role = adminDiscordIds.has(profile.id) ? "ADMIN" as const : undefined;
   const userId = await db.$transaction(async (tx) => {
     if (linked) {
       await tx.socialAccount.update({
@@ -182,7 +185,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
       });
       await tx.user.update({
         where: { id: linked.userId },
-        data: { avatarUrl },
+        data: { avatarUrl, role },
       });
       return linked.userId;
     }
@@ -208,7 +211,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
       });
       await tx.user.update({
         where: { id: currentAuth.userId },
-        data: { avatarUrl },
+        data: { avatarUrl, role },
       });
       return currentAuth.userId;
     }
@@ -224,7 +227,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
       expiresAt: new Date(Date.now() + sessionLifetimeMs),
     },
   });
-  res.clearCookie("mbo_discord_state");
+  res.clearCookie("mbo_discord_state", cookieSecurity);
   setSessionCookie(res, sessionToken);
   res.redirect(`${config.FRONTEND_URL}/profile?discord=linked`);
 }));
@@ -234,6 +237,6 @@ authRouter.post("/auth/disconnect", requireAuth, asyncRoute(async (req, res) => 
   if (token) {
     await db.session.deleteMany({ where: { tokenHash: sessionHash(token) } });
   }
-  res.clearCookie("mbo_session");
+  res.clearCookie("mbo_session", cookieSecurity);
   res.status(204).end();
 }));

@@ -18,6 +18,7 @@ NODE_ENV=production
 FRONTEND_URL=https://YOUR-FRONTEND.onrender.com
 BACKEND_PUBLIC_URL=https://YOUR-BACKEND.onrender.com
 DISCORD_CALLBACK_URL=https://YOUR-FRONTEND.onrender.com/api/auth/discord/callback
+ADMIN_DISCORD_IDS=YOUR_DISCORD_USER_ID
 ```
 
 Add that exact `DISCORD_CALLBACK_URL` under OAuth2 Redirects in the Discord Developer

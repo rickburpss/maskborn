@@ -7,6 +7,11 @@ export type ArtworkPreviewVariant = {
   categories: string[];
   url: string;
 };
+export type TraitVoteTotal = {
+  category: string;
+  upvotes: number;
+  downvotes: number;
+};
 
 export type Artwork = {
   id: string;
@@ -23,4 +28,7 @@ export type Artwork = {
   description: string;
   previewAssetUrl?: string;
   previewVariants?: ArtworkPreviewVariant[];
+  categories?: string[];
+  traitVotes?: TraitVoteTotal[];
+  viewerVote?: { value: "UP" | "DOWN"; category: string | null } | null;
 };

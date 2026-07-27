@@ -2180,6 +2180,7 @@ export const VoteScalarFieldEnum = {
   submissionId: 'submissionId',
   userId: 'userId',
   value: 'value',
+  category: 'category',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2193,6 +2194,7 @@ export const VoteEventScalarFieldEnum = {
   userId: 'userId',
   fromValue: 'fromValue',
   toValue: 'toValue',
+  category: 'category',
   signalHash: 'signalHash',
   requestId: 'requestId',
   createdAt: 'createdAt'

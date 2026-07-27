@@ -403,6 +403,13 @@ export type EnumVoteValueFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumVoteValueFilter<$PrismaModel> | $Enums.VoteValue
 }
 
+export type EnumGeneratorCategoryNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeneratorCategory | Prisma.EnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeneratorCategoryNullableFilter<$PrismaModel> | $Enums.GeneratorCategory | null
+}
+
 export type EnumVoteValueWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.VoteValue | Prisma.EnumVoteValueFieldRefInput<$PrismaModel>
   in?: $Enums.VoteValue[] | Prisma.ListEnumVoteValueFieldRefInput<$PrismaModel>
@@ -411,6 +418,16 @@ export type EnumVoteValueWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumVoteValueFilter<$PrismaModel>
   _max?: Prisma.NestedEnumVoteValueFilter<$PrismaModel>
+}
+
+export type EnumGeneratorCategoryNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeneratorCategory | Prisma.EnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeneratorCategoryNullableWithAggregatesFilter<$PrismaModel> | $Enums.GeneratorCategory | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGeneratorCategoryNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGeneratorCategoryNullableFilter<$PrismaModel>
 }
 
 export type EnumVoteValueNullableFilter<$PrismaModel = never> = {
@@ -944,6 +961,13 @@ export type NestedEnumVoteValueFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumVoteValueFilter<$PrismaModel> | $Enums.VoteValue
 }
 
+export type NestedEnumGeneratorCategoryNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeneratorCategory | Prisma.EnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeneratorCategoryNullableFilter<$PrismaModel> | $Enums.GeneratorCategory | null
+}
+
 export type NestedEnumVoteValueWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.VoteValue | Prisma.EnumVoteValueFieldRefInput<$PrismaModel>
   in?: $Enums.VoteValue[] | Prisma.ListEnumVoteValueFieldRefInput<$PrismaModel>
@@ -952,6 +976,16 @@ export type NestedEnumVoteValueWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumVoteValueFilter<$PrismaModel>
   _max?: Prisma.NestedEnumVoteValueFilter<$PrismaModel>
+}
+
+export type NestedEnumGeneratorCategoryNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GeneratorCategory | Prisma.EnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  in?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.GeneratorCategory[] | Prisma.ListEnumGeneratorCategoryFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumGeneratorCategoryNullableWithAggregatesFilter<$PrismaModel> | $Enums.GeneratorCategory | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGeneratorCategoryNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGeneratorCategoryNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumVoteValueNullableFilter<$PrismaModel = never> = {

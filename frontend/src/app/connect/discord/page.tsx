@@ -54,8 +54,8 @@ export default function DiscordConnectPage() {
       <h1>{failed ? "The order is taking too long." : "Waking the order."}</h1>
       <p>
         {failed
-          ? "The free API did not answer yet. Try again and we will continue with Discord as soon as it is awake."
-          : "The free API was asleep. Stay here—your Discord login will open automatically when it is ready."}
+          ? "Try again and we will continue with Discord as soon as it is awake."
+          : "Stay here your Discord login will open automatically when it is ready."}
       </p>
       {failed && <button className="button button-amber" onClick={wake}>Try again <ArrowRight size={16} /></button>}
     </section>

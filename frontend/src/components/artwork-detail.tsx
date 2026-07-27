@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowUpRight, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { ArtworkVoteControls } from "@/components/artwork-vote-controls";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { apiFetch } from "@/lib/api";
 
@@ -19,9 +21,12 @@ type SubmissionDetail = {
   publishedAt: string;
   user: { displayName: string | null; socialAccounts: Array<{ username: string }> };
   galleryEntry: unknown | null;
+  traitVotes: Array<{ category: string; upvotes: number; downvotes: number }>;
+  viewerVote: { value: "UP" | "DOWN"; category: string | null } | null;
 };
 
 export function ArtworkDetail({ slug }: { slug: string }) {
+  const [shared, setShared] = useState(false);
   const submission = useQuery({
     queryKey: ["submission", slug],
     queryFn: () => apiFetch<{ item: SubmissionDetail; voteClosesAt: string }>(`/submissions/${encodeURIComponent(slug)}`),
@@ -61,9 +66,23 @@ export function ArtworkDetail({ slug }: { slug: string }) {
             <div><ThumbsUp size={18} /> <b>{artwork.upvoteCount}</b><span>Upvotes</span></div>
             <div><ThumbsDown size={18} /> <b>{artwork.downvoteCount}</b><span>Downvotes</span></div>
           </div>
+          <ArtworkVoteControls
+            id={artwork.id}
+            title={artwork.title}
+            categories={artwork.kind === "ONE_OF_ONE" ? [] : artwork.categories}
+            initialUpvotes={artwork.upvoteCount}
+            initialDownvotes={artwork.downvoteCount}
+            traitVotes={artwork.traitVotes}
+            viewerVote={artwork.viewerVote}
+          />
           <div className="vote-window"><span>Vote record</span><p>The 24-hour voting window ends at {voteClosesAt.toLocaleString()}.</p></div>
-          <button className="button button-dark" onClick={() => navigator.share?.({ title: artwork.title, url: window.location.href })}>
-            <Share2 size={16} /> Share artwork
+          <button className="button button-dark" onClick={async () => {
+            if (navigator.share) await navigator.share({ title: artwork.title, text: `Vote for ${artwork.title} on Mask Born Order.`, url: window.location.href });
+            else await navigator.clipboard.writeText(window.location.href);
+            setShared(true);
+            window.setTimeout(() => setShared(false), 1600);
+          }}>
+            <Share2 size={16} /> {shared ? "Link copied" : "Share artwork"}
           </button>
         </div>
       </div>

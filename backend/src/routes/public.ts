@@ -8,6 +8,43 @@ import { asyncRoute } from "../utils.js";
 
 export const publicRouter = Router();
 
+async function attachVoteBreakdown<T extends { id: string }>(items: T[], userId?: string) {
+  if (items.length === 0) return [];
+  const ids = items.map((item) => item.id);
+  const [groups, viewerVotes] = await Promise.all([
+    db.vote.groupBy({
+      by: ["submissionId", "category", "value"],
+      where: { submissionId: { in: ids }, category: { not: null } },
+      _count: { _all: true },
+    }),
+    userId
+      ? db.vote.findMany({
+        where: { submissionId: { in: ids }, userId },
+        select: { submissionId: true, value: true, category: true },
+      })
+      : Promise.resolve([]),
+  ]);
+  const breakdown = new Map<string, Map<string, { category: string; upvotes: number; downvotes: number }>>();
+  for (const group of groups) {
+    if (!group.category) continue;
+    const submission = breakdown.get(group.submissionId) ?? new Map();
+    const totals = submission.get(group.category) ?? { category: group.category, upvotes: 0, downvotes: 0 };
+    if (group.value === "UP") totals.upvotes = group._count._all;
+    else totals.downvotes = group._count._all;
+    submission.set(group.category, totals);
+    breakdown.set(group.submissionId, submission);
+  }
+  const ownVotes = new Map(viewerVotes.map((vote) => [vote.submissionId, {
+    value: vote.value,
+    category: vote.category,
+  }]));
+  return items.map((item) => ({
+    ...item,
+    traitVotes: [...(breakdown.get(item.id)?.values() ?? [])],
+    viewerVote: ownVotes.get(item.id) ?? null,
+  }));
+}
+
 publicRouter.get("/health", (_req, res) => {
   res.json({ ok: true, service: "maskborn-api" });
 });
@@ -85,7 +122,8 @@ publicRouter.get("/submissions", asyncRoute(async (req, res) => {
   });
   const hasMore = rows.length > query.limit;
   const items = hasMore ? rows.slice(0, query.limit) : rows;
-  res.json({ items, nextCursor: hasMore ? items.at(-1)?.id : null });
+  const enriched = await attachVoteBreakdown(items, req.auth?.userId);
+  res.json({ items: enriched, nextCursor: hasMore ? items.at(-1)?.id : null });
 }));
 
 publicRouter.get("/submissions/:slug", asyncRoute(async (req, res) => {
@@ -101,7 +139,8 @@ publicRouter.get("/submissions/:slug", asyncRoute(async (req, res) => {
   if (!row || ["REJECTED", "WITHDRAWN"].includes(row.status)) {
     throw new ApiError(404, "SUBMISSION_NOT_FOUND", "That artwork was not found.");
   }
-  res.json({ item: row, voteClosesAt: new Date(row.publishedAt.getTime() + 24 * 60 * 60 * 1000) });
+  const [item] = await attachVoteBreakdown([row], req.auth?.userId);
+  res.json({ item, voteClosesAt: new Date(row.publishedAt.getTime() + 24 * 60 * 60 * 1000) });
 }));
 
 publicRouter.get("/gallery", asyncRoute(async (req, res) => {

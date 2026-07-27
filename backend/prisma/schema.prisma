@@ -271,6 +271,7 @@ model Vote {
   submissionId String
   userId       String
   value        VoteValue
+  category     GeneratorCategory?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
@@ -278,6 +279,7 @@ model Vote {
 
   @@unique([submissionId, userId])
   @@index([userId, updatedAt])
+  @@index([submissionId, category, value])
 }
 
 model VoteEvent {
@@ -286,6 +288,7 @@ model VoteEvent {
   userId       String
   fromValue    VoteValue?
   toValue      VoteValue?
+  category     GeneratorCategory?
   signalHash   String
   requestId    String
   createdAt    DateTime    @default(now())
@@ -294,6 +297,7 @@ model VoteEvent {
 
   @@index([userId, createdAt])
   @@index([signalHash, createdAt])
+  @@index([submissionId, category, createdAt])
 }
 
 model VoteRestriction {

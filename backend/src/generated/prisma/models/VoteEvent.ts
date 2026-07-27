@@ -30,6 +30,7 @@ export type VoteEventMinAggregateOutputType = {
   userId: string | null
   fromValue: $Enums.VoteValue | null
   toValue: $Enums.VoteValue | null
+  category: $Enums.GeneratorCategory | null
   signalHash: string | null
   requestId: string | null
   createdAt: Date | null
@@ -41,6 +42,7 @@ export type VoteEventMaxAggregateOutputType = {
   userId: string | null
   fromValue: $Enums.VoteValue | null
   toValue: $Enums.VoteValue | null
+  category: $Enums.GeneratorCategory | null
   signalHash: string | null
   requestId: string | null
   createdAt: Date | null
@@ -52,6 +54,7 @@ export type VoteEventCountAggregateOutputType = {
   userId: number
   fromValue: number
   toValue: number
+  category: number
   signalHash: number
   requestId: number
   createdAt: number
@@ -65,6 +68,7 @@ export type VoteEventMinAggregateInputType = {
   userId?: true
   fromValue?: true
   toValue?: true
+  category?: true
   signalHash?: true
   requestId?: true
   createdAt?: true
@@ -76,6 +80,7 @@ export type VoteEventMaxAggregateInputType = {
   userId?: true
   fromValue?: true
   toValue?: true
+  category?: true
   signalHash?: true
   requestId?: true
   createdAt?: true
@@ -87,6 +92,7 @@ export type VoteEventCountAggregateInputType = {
   userId?: true
   fromValue?: true
   toValue?: true
+  category?: true
   signalHash?: true
   requestId?: true
   createdAt?: true
@@ -171,6 +177,7 @@ export type VoteEventGroupByOutputType = {
   userId: string
   fromValue: $Enums.VoteValue | null
   toValue: $Enums.VoteValue | null
+  category: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt: Date
@@ -203,6 +210,7 @@ export type VoteEventWhereInput = {
   userId?: Prisma.StringFilter<"VoteEvent"> | string
   fromValue?: Prisma.EnumVoteValueNullableFilter<"VoteEvent"> | $Enums.VoteValue | null
   toValue?: Prisma.EnumVoteValueNullableFilter<"VoteEvent"> | $Enums.VoteValue | null
+  category?: Prisma.EnumGeneratorCategoryNullableFilter<"VoteEvent"> | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFilter<"VoteEvent"> | string
   requestId?: Prisma.StringFilter<"VoteEvent"> | string
   createdAt?: Prisma.DateTimeFilter<"VoteEvent"> | Date | string
@@ -216,6 +224,7 @@ export type VoteEventOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   fromValue?: Prisma.SortOrderInput | Prisma.SortOrder
   toValue?: Prisma.SortOrderInput | Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   signalHash?: Prisma.SortOrder
   requestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -232,6 +241,7 @@ export type VoteEventWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringFilter<"VoteEvent"> | string
   fromValue?: Prisma.EnumVoteValueNullableFilter<"VoteEvent"> | $Enums.VoteValue | null
   toValue?: Prisma.EnumVoteValueNullableFilter<"VoteEvent"> | $Enums.VoteValue | null
+  category?: Prisma.EnumGeneratorCategoryNullableFilter<"VoteEvent"> | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFilter<"VoteEvent"> | string
   requestId?: Prisma.StringFilter<"VoteEvent"> | string
   createdAt?: Prisma.DateTimeFilter<"VoteEvent"> | Date | string
@@ -245,6 +255,7 @@ export type VoteEventOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   fromValue?: Prisma.SortOrderInput | Prisma.SortOrder
   toValue?: Prisma.SortOrderInput | Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   signalHash?: Prisma.SortOrder
   requestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -262,6 +273,7 @@ export type VoteEventScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringWithAggregatesFilter<"VoteEvent"> | string
   fromValue?: Prisma.EnumVoteValueNullableWithAggregatesFilter<"VoteEvent"> | $Enums.VoteValue | null
   toValue?: Prisma.EnumVoteValueNullableWithAggregatesFilter<"VoteEvent"> | $Enums.VoteValue | null
+  category?: Prisma.EnumGeneratorCategoryNullableWithAggregatesFilter<"VoteEvent"> | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringWithAggregatesFilter<"VoteEvent"> | string
   requestId?: Prisma.StringWithAggregatesFilter<"VoteEvent"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"VoteEvent"> | Date | string
@@ -271,6 +283,7 @@ export type VoteEventCreateInput = {
   id?: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -284,6 +297,7 @@ export type VoteEventUncheckedCreateInput = {
   userId: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -293,6 +307,7 @@ export type VoteEventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -306,6 +321,7 @@ export type VoteEventUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -317,6 +333,7 @@ export type VoteEventCreateManyInput = {
   userId: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -326,6 +343,7 @@ export type VoteEventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -337,6 +355,7 @@ export type VoteEventUncheckedUpdateManyInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -358,6 +377,7 @@ export type VoteEventCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   fromValue?: Prisma.SortOrder
   toValue?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   signalHash?: Prisma.SortOrder
   requestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -369,6 +389,7 @@ export type VoteEventMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   fromValue?: Prisma.SortOrder
   toValue?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   signalHash?: Prisma.SortOrder
   requestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -380,6 +401,7 @@ export type VoteEventMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   fromValue?: Prisma.SortOrder
   toValue?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   signalHash?: Prisma.SortOrder
   requestId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -477,6 +499,7 @@ export type VoteEventCreateWithoutUserInput = {
   id?: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -488,6 +511,7 @@ export type VoteEventUncheckedCreateWithoutUserInput = {
   submissionId: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -528,6 +552,7 @@ export type VoteEventScalarWhereInput = {
   userId?: Prisma.StringFilter<"VoteEvent"> | string
   fromValue?: Prisma.EnumVoteValueNullableFilter<"VoteEvent"> | $Enums.VoteValue | null
   toValue?: Prisma.EnumVoteValueNullableFilter<"VoteEvent"> | $Enums.VoteValue | null
+  category?: Prisma.EnumGeneratorCategoryNullableFilter<"VoteEvent"> | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFilter<"VoteEvent"> | string
   requestId?: Prisma.StringFilter<"VoteEvent"> | string
   createdAt?: Prisma.DateTimeFilter<"VoteEvent"> | Date | string
@@ -537,6 +562,7 @@ export type VoteEventCreateWithoutSubmissionInput = {
   id?: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -548,6 +574,7 @@ export type VoteEventUncheckedCreateWithoutSubmissionInput = {
   userId: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -584,6 +611,7 @@ export type VoteEventCreateManyUserInput = {
   submissionId: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -593,6 +621,7 @@ export type VoteEventUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -604,6 +633,7 @@ export type VoteEventUncheckedUpdateWithoutUserInput = {
   submissionId?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -614,6 +644,7 @@ export type VoteEventUncheckedUpdateManyWithoutUserInput = {
   submissionId?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -624,6 +655,7 @@ export type VoteEventCreateManySubmissionInput = {
   userId: string
   fromValue?: $Enums.VoteValue | null
   toValue?: $Enums.VoteValue | null
+  category?: $Enums.GeneratorCategory | null
   signalHash: string
   requestId: string
   createdAt?: Date | string
@@ -633,6 +665,7 @@ export type VoteEventUpdateWithoutSubmissionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -644,6 +677,7 @@ export type VoteEventUncheckedUpdateWithoutSubmissionInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -654,6 +688,7 @@ export type VoteEventUncheckedUpdateManyWithoutSubmissionInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   fromValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
   toValue?: Prisma.NullableEnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue | null
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   signalHash?: Prisma.StringFieldUpdateOperationsInput | string
   requestId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -667,6 +702,7 @@ export type VoteEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   userId?: boolean
   fromValue?: boolean
   toValue?: boolean
+  category?: boolean
   signalHash?: boolean
   requestId?: boolean
   createdAt?: boolean
@@ -680,6 +716,7 @@ export type VoteEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   userId?: boolean
   fromValue?: boolean
   toValue?: boolean
+  category?: boolean
   signalHash?: boolean
   requestId?: boolean
   createdAt?: boolean
@@ -693,6 +730,7 @@ export type VoteEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   userId?: boolean
   fromValue?: boolean
   toValue?: boolean
+  category?: boolean
   signalHash?: boolean
   requestId?: boolean
   createdAt?: boolean
@@ -706,12 +744,13 @@ export type VoteEventSelectScalar = {
   userId?: boolean
   fromValue?: boolean
   toValue?: boolean
+  category?: boolean
   signalHash?: boolean
   requestId?: boolean
   createdAt?: boolean
 }
 
-export type VoteEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "userId" | "fromValue" | "toValue" | "signalHash" | "requestId" | "createdAt", ExtArgs["result"]["voteEvent"]>
+export type VoteEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "userId" | "fromValue" | "toValue" | "category" | "signalHash" | "requestId" | "createdAt", ExtArgs["result"]["voteEvent"]>
 export type VoteEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -737,6 +776,7 @@ export type $VoteEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     userId: string
     fromValue: $Enums.VoteValue | null
     toValue: $Enums.VoteValue | null
+    category: $Enums.GeneratorCategory | null
     signalHash: string
     requestId: string
     createdAt: Date
@@ -1170,6 +1210,7 @@ export interface VoteEventFieldRefs {
   readonly userId: Prisma.FieldRef<"VoteEvent", 'String'>
   readonly fromValue: Prisma.FieldRef<"VoteEvent", 'VoteValue'>
   readonly toValue: Prisma.FieldRef<"VoteEvent", 'VoteValue'>
+  readonly category: Prisma.FieldRef<"VoteEvent", 'GeneratorCategory'>
   readonly signalHash: Prisma.FieldRef<"VoteEvent", 'String'>
   readonly requestId: Prisma.FieldRef<"VoteEvent", 'String'>
   readonly createdAt: Prisma.FieldRef<"VoteEvent", 'DateTime'>

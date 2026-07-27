@@ -12,6 +12,7 @@ const schema = z.object({
   DISCORD_CLIENT_ID: z.string().optional(),
   DISCORD_CLIENT_SECRET: z.string().optional(),
   DISCORD_CALLBACK_URL: z.string().url().optional(),
+  ADMIN_DISCORD_IDS: z.string().default(""),
   ALLOW_DEV_AUTH: z.enum(["true", "false"]).default("false"),
   STORAGE_LOCAL_DIR: z.string().min(1).default(".local-storage"),
   R2_ACCOUNT_ID: z.string().optional(),
@@ -47,3 +48,7 @@ const schema = z.object({
 });
 
 export const config = schema.parse(process.env);
+
+export const adminDiscordIds = new Set(
+  config.ADMIN_DISCORD_IDS.split(",").map((value) => value.trim()).filter(Boolean),
+);

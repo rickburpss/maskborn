@@ -15,7 +15,14 @@ type CurrentUser = {
 export function useCurrentUser() {
   return useQuery({
     queryKey: ["session"],
-    queryFn: () => apiFetch<{ user: CurrentUser }>("/session"),
+    queryFn: async () => {
+      try {
+        return await apiFetch<{ user: CurrentUser }>("/session");
+      } catch (error) {
+        if ((error as Error & { status?: number }).status === 401) return { user: null };
+        throw error;
+      }
+    },
     retry: false,
     staleTime: 60_000,
   });

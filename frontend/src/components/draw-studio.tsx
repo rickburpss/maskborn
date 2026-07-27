@@ -42,7 +42,7 @@ export function DrawStudio() {
   const draft = useDraftStore();
   const session = useCurrentUser();
   const queryClient = useQueryClient();
-  const discordVerified = session.data?.user.socialAccounts.some(
+  const discordVerified = session.data?.user?.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   ) ?? false;
   const [tab, setTab] = useState<"canvas" | "compatibility">("canvas");
@@ -82,7 +82,7 @@ export function DrawStudio() {
   const oneOfOneExhausted = (profile.data?.slots.oneOfOne.consumed ?? 0) >= (profile.data?.slots.oneOfOne.limit ?? 2);
 
   useEffect(() => {
-    if (!draft.updatedAt || !session.data?.user.id || !discordVerified || lastSavedAt.current === draft.updatedAt) return;
+    if (!draft.updatedAt || !session.data?.user?.id || !discordVerified || lastSavedAt.current === draft.updatedAt) return;
     setSaveStatus("saving");
     const timer = window.setTimeout(async () => {
       try {
@@ -114,7 +114,7 @@ export function DrawStudio() {
       }
     }, 1200);
     return () => window.clearTimeout(timer);
-  }, [draft, session.data?.user.id, discordVerified]);
+  }, [draft, session.data?.user?.id, discordVerified]);
 
   const editAtPointer = (event: PointerEvent<SVGSVGElement>) => {
     if (activeLayer?.kind === "Background" && previewBackground) return;

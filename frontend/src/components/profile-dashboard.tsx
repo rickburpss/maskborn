@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Copy, FilePenLine, Plus, WalletCards } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Copy, FilePenLine, Plus, Search, WalletCards } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { ArtCard } from "@/components/art-card";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -12,12 +13,14 @@ import { useDraftStore } from "@/store/draft";
 import { useSessionStore } from "@/store/session";
 
 export function ProfileDashboard() {
+  const [submissionSearch, setSubmissionSearch] = useState("");
+  const [submissionSort, setSubmissionSort] = useState("Newest");
   const localTwitter = useSessionStore((state) => state.twitter);
   const localWallet = useSessionStore((state) => state.wallet);
   const session = useCurrentUser();
-  const remoteUsername = session.data?.user.socialAccounts.find((account) => account.provider === "X_MANUAL")?.username;
+  const remoteUsername = session.data?.user?.socialAccounts.find((account) => account.provider === "X_MANUAL")?.username;
   const twitter = remoteUsername ? `@${remoteUsername}` : localTwitter ?? "@not-connected";
-  const wallet = session.data?.user.wallets.find((item) => item.isPrimary)?.address ?? localWallet;
+  const wallet = session.data?.user?.wallets.find((item) => item.isPrimary)?.address ?? localWallet;
   const draftTitle = useDraftStore((state) => state.title);
   const draftUpdatedAt = useDraftStore((state) => state.updatedAt);
   const profile = useQuery({
@@ -43,7 +46,7 @@ export function ProfileDashboard() {
         galleryEntry: { feeShare?: unknown | null } | null;
       }>;
     }>("/profile"),
-    enabled: Boolean(session.data?.user.id),
+    enabled: Boolean(session.data?.user?.id),
     retry: false,
   });
   const oneOfOneSlots = profile.data?.slots.oneOfOne;
@@ -64,8 +67,17 @@ export function ProfileDashboard() {
     submittedAt: new Date(item.publishedAt).toLocaleDateString(),
     previewAssetUrl: item.previewAssetUrl,
     previewVariants: item.kind === "TRAIT_EXTENSION" ? (item.previewVariants ?? []) : [],
+    categories: item.categories,
   }));
   const communityScore = userArt.reduce((total, item) => total + item.upvotes, 0);
+  const visibleUserArt = userArt
+    .filter((item) => `${item.title} ${item.description} ${item.categories?.join(" ") ?? ""}`
+      .toLowerCase().includes(submissionSearch.trim().toLowerCase()))
+    .sort((a, b) => submissionSort === "Highest likes"
+      ? b.upvotes - a.upvotes
+      : submissionSort === "Highest score"
+        ? (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes)
+        : 0);
   const payoutEligible = (profile.data?.submissions ?? [])
     .filter((item) => Boolean(item.galleryEntry?.feeShare))
     .map((item) => item.title);
@@ -95,10 +107,17 @@ export function ProfileDashboard() {
       <div className="profile-main-grid">
         <div>
           <div className="profile-section-head"><div><p className="eyebrow">Your work</p><h2>Submissions</h2></div><Link href="/draw"><Plus size={15} /> New work</Link></div>
+          {userArt.length > 0 && (
+            <div className="filter-row">
+              <label className="filter-search"><Search size={15} /><input value={submissionSearch} onChange={(event) => setSubmissionSearch(event.target.value)} placeholder="Search your work" /></label>
+              <label className="select-wrap"><select value={submissionSort} onChange={(event) => setSubmissionSort(event.target.value)}><option>Newest</option><option>Highest likes</option><option>Highest score</option></select><ChevronDown size={14} /></label>
+            </div>
+          )}
           <div className="art-grid profile-creations">
-            {userArt.map((art, index) => <ArtCard key={art.id} artwork={art} index={index} />)}
+            {visibleUserArt.map((art, index) => <ArtCard key={art.id} artwork={art} index={index} />)}
           </div>
           {!profile.isLoading && userArt.length === 0 && <div className="empty-state">You have not published a creation yet.</div>}
+          {userArt.length > 0 && visibleUserArt.length === 0 && <div className="empty-state">No submission matches that search.</div>}
         </div>
         <aside className="profile-aside">
           {draftUpdatedAt && (

@@ -19,7 +19,7 @@ export default function Home() {
             Enter the order <ArrowUpRight />
           </Link>
         </div>
-        <a className="scroll-cue" href="#featured"><ArrowDown size={16} /> Pick a mask</a>
+        <a className="scroll-cue" href="#featured"><ArrowDown size={16} /> Pick a maskborn</a>
       </section>
 
       <div id="featured">

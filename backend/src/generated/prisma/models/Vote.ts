@@ -29,6 +29,7 @@ export type VoteMinAggregateOutputType = {
   submissionId: string | null
   userId: string | null
   value: $Enums.VoteValue | null
+  category: $Enums.GeneratorCategory | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +39,7 @@ export type VoteMaxAggregateOutputType = {
   submissionId: string | null
   userId: string | null
   value: $Enums.VoteValue | null
+  category: $Enums.GeneratorCategory | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,6 +49,7 @@ export type VoteCountAggregateOutputType = {
   submissionId: number
   userId: number
   value: number
+  category: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -58,6 +61,7 @@ export type VoteMinAggregateInputType = {
   submissionId?: true
   userId?: true
   value?: true
+  category?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +71,7 @@ export type VoteMaxAggregateInputType = {
   submissionId?: true
   userId?: true
   value?: true
+  category?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +81,7 @@ export type VoteCountAggregateInputType = {
   submissionId?: true
   userId?: true
   value?: true
+  category?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -158,6 +164,7 @@ export type VoteGroupByOutputType = {
   submissionId: string
   userId: string
   value: $Enums.VoteValue
+  category: $Enums.GeneratorCategory | null
   createdAt: Date
   updatedAt: Date
   _count: VoteCountAggregateOutputType | null
@@ -188,6 +195,7 @@ export type VoteWhereInput = {
   submissionId?: Prisma.StringFilter<"Vote"> | string
   userId?: Prisma.StringFilter<"Vote"> | string
   value?: Prisma.EnumVoteValueFilter<"Vote"> | $Enums.VoteValue
+  category?: Prisma.EnumGeneratorCategoryNullableFilter<"Vote"> | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFilter<"Vote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Vote"> | Date | string
   submission?: Prisma.XOR<Prisma.SubmissionScalarRelationFilter, Prisma.SubmissionWhereInput>
@@ -199,6 +207,7 @@ export type VoteOrderByWithRelationInput = {
   submissionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   submission?: Prisma.SubmissionOrderByWithRelationInput
@@ -214,6 +223,7 @@ export type VoteWhereUniqueInput = Prisma.AtLeast<{
   submissionId?: Prisma.StringFilter<"Vote"> | string
   userId?: Prisma.StringFilter<"Vote"> | string
   value?: Prisma.EnumVoteValueFilter<"Vote"> | $Enums.VoteValue
+  category?: Prisma.EnumGeneratorCategoryNullableFilter<"Vote"> | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFilter<"Vote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Vote"> | Date | string
   submission?: Prisma.XOR<Prisma.SubmissionScalarRelationFilter, Prisma.SubmissionWhereInput>
@@ -225,6 +235,7 @@ export type VoteOrderByWithAggregationInput = {
   submissionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  category?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.VoteCountOrderByAggregateInput
@@ -240,6 +251,7 @@ export type VoteScalarWhereWithAggregatesInput = {
   submissionId?: Prisma.StringWithAggregatesFilter<"Vote"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Vote"> | string
   value?: Prisma.EnumVoteValueWithAggregatesFilter<"Vote"> | $Enums.VoteValue
+  category?: Prisma.EnumGeneratorCategoryNullableWithAggregatesFilter<"Vote"> | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Vote"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Vote"> | Date | string
 }
@@ -247,6 +259,7 @@ export type VoteScalarWhereWithAggregatesInput = {
 export type VoteCreateInput = {
   id?: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
   submission: Prisma.SubmissionCreateNestedOneWithoutVotesInput
@@ -258,6 +271,7 @@ export type VoteUncheckedCreateInput = {
   submissionId: string
   userId: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -265,6 +279,7 @@ export type VoteUncheckedCreateInput = {
 export type VoteUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutVotesNestedInput
@@ -276,6 +291,7 @@ export type VoteUncheckedUpdateInput = {
   submissionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -285,6 +301,7 @@ export type VoteCreateManyInput = {
   submissionId: string
   userId: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -292,6 +309,7 @@ export type VoteCreateManyInput = {
 export type VoteUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -301,6 +319,7 @@ export type VoteUncheckedUpdateManyInput = {
   submissionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -325,6 +344,7 @@ export type VoteCountOrderByAggregateInput = {
   submissionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -334,6 +354,7 @@ export type VoteMaxOrderByAggregateInput = {
   submissionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -343,6 +364,7 @@ export type VoteMinOrderByAggregateInput = {
   submissionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  category?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -435,9 +457,14 @@ export type EnumVoteValueFieldUpdateOperationsInput = {
   set?: $Enums.VoteValue
 }
 
+export type NullableEnumGeneratorCategoryFieldUpdateOperationsInput = {
+  set?: $Enums.GeneratorCategory | null
+}
+
 export type VoteCreateWithoutUserInput = {
   id?: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
   submission: Prisma.SubmissionCreateNestedOneWithoutVotesInput
@@ -447,6 +474,7 @@ export type VoteUncheckedCreateWithoutUserInput = {
   id?: string
   submissionId: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -485,6 +513,7 @@ export type VoteScalarWhereInput = {
   submissionId?: Prisma.StringFilter<"Vote"> | string
   userId?: Prisma.StringFilter<"Vote"> | string
   value?: Prisma.EnumVoteValueFilter<"Vote"> | $Enums.VoteValue
+  category?: Prisma.EnumGeneratorCategoryNullableFilter<"Vote"> | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFilter<"Vote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Vote"> | Date | string
 }
@@ -492,6 +521,7 @@ export type VoteScalarWhereInput = {
 export type VoteCreateWithoutSubmissionInput = {
   id?: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutVotesInput
@@ -501,6 +531,7 @@ export type VoteUncheckedCreateWithoutSubmissionInput = {
   id?: string
   userId: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -535,6 +566,7 @@ export type VoteCreateManyUserInput = {
   id?: string
   submissionId: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -542,6 +574,7 @@ export type VoteCreateManyUserInput = {
 export type VoteUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submission?: Prisma.SubmissionUpdateOneRequiredWithoutVotesNestedInput
@@ -551,6 +584,7 @@ export type VoteUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   submissionId?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -559,6 +593,7 @@ export type VoteUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   submissionId?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -567,6 +602,7 @@ export type VoteCreateManySubmissionInput = {
   id?: string
   userId: string
   value: $Enums.VoteValue
+  category?: $Enums.GeneratorCategory | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -574,6 +610,7 @@ export type VoteCreateManySubmissionInput = {
 export type VoteUpdateWithoutSubmissionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutVotesNestedInput
@@ -583,6 +620,7 @@ export type VoteUncheckedUpdateWithoutSubmissionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -591,6 +629,7 @@ export type VoteUncheckedUpdateManyWithoutSubmissionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   value?: Prisma.EnumVoteValueFieldUpdateOperationsInput | $Enums.VoteValue
+  category?: Prisma.NullableEnumGeneratorCategoryFieldUpdateOperationsInput | $Enums.GeneratorCategory | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -602,6 +641,7 @@ export type VoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   submissionId?: boolean
   userId?: boolean
   value?: boolean
+  category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
@@ -613,6 +653,7 @@ export type VoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   submissionId?: boolean
   userId?: boolean
   value?: boolean
+  category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
@@ -624,6 +665,7 @@ export type VoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   submissionId?: boolean
   userId?: boolean
   value?: boolean
+  category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
@@ -635,11 +677,12 @@ export type VoteSelectScalar = {
   submissionId?: boolean
   userId?: boolean
   value?: boolean
+  category?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type VoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "userId" | "value" | "createdAt" | "updatedAt", ExtArgs["result"]["vote"]>
+export type VoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "submissionId" | "userId" | "value" | "category" | "createdAt" | "updatedAt", ExtArgs["result"]["vote"]>
 export type VoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   submission?: boolean | Prisma.SubmissionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -664,6 +707,7 @@ export type $VotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     submissionId: string
     userId: string
     value: $Enums.VoteValue
+    category: $Enums.GeneratorCategory | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["vote"]>
@@ -1095,6 +1139,7 @@ export interface VoteFieldRefs {
   readonly submissionId: Prisma.FieldRef<"Vote", 'String'>
   readonly userId: Prisma.FieldRef<"Vote", 'String'>
   readonly value: Prisma.FieldRef<"Vote", 'VoteValue'>
+  readonly category: Prisma.FieldRef<"Vote", 'GeneratorCategory'>
   readonly createdAt: Prisma.FieldRef<"Vote", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Vote", 'DateTime'>
 }

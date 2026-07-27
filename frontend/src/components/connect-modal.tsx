@@ -16,21 +16,21 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
   const local = useSessionStore();
   const session = useCurrentUser();
   const queryClient = useQueryClient();
-  const xAccount = session.data?.user.socialAccounts.find((account) => account.provider === "X_MANUAL");
-  const discordAccount = session.data?.user.socialAccounts.find(
+  const xAccount = session.data?.user?.socialAccounts.find((account) => account.provider === "X_MANUAL");
+  const discordAccount = session.data?.user?.socialAccounts.find(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   );
   const twitter = xAccount?.username
     ? `@${xAccount.username}`
     : local.twitter;
-  const remoteWallet = session.data?.user.wallets.find((item) => item.isPrimary)?.address;
+  const remoteWallet = session.data?.user?.wallets.find((item) => item.isPrimary)?.address;
   const wallet = remoteWallet ?? local.wallet;
   const [usernameInput, setUsernameInput] = useState(twitter ?? "");
   const [walletInput, setWalletInput] = useState(wallet ?? "");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [creatingAccount, setCreatingAccount] = useState(false);
-  const isSignedIn = Boolean(session.data?.user.id);
+  const isSignedIn = Boolean(session.data?.user?.id);
   const showAccountChoice = !session.isLoading && !isSignedIn && !creatingAccount;
   const showAccountFlow = isSignedIn || creatingAccount;
 
@@ -210,15 +210,25 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
               <div className="modal-actions">
                 <Link href="/profile" className="button button-amber" onClick={closeModal}>Open profile</Link>
                 <button className="text-button danger" onClick={async () => {
-                  await apiFetch("/auth/disconnect", { method: "POST" }).catch(() => undefined);
-                  local.disconnect();
-                  setUsernameInput("");
-                  setWalletInput("");
-                  await queryClient.invalidateQueries({ queryKey: ["session"] });
+                  try {
+                    await apiFetch("/auth/disconnect", { method: "POST" });
+                    local.disconnect();
+                    setUsernameInput("");
+                    setWalletInput("");
+                    await queryClient.cancelQueries({ queryKey: ["session"] });
+                    queryClient.setQueryData(["session"], { user: null });
+                    setError("");
+                    closeModal();
+                  } catch (requestError) {
+                    setError((requestError as Error).message);
+                  }
                 }}>
                   <LogOut size={15} /> Disconnect
                 </button>
               </div>
+            )}
+            {session.data?.user?.role === "ADMIN" && showAccountFlow && (
+              <Link className="admin-account-link" href="/admin" onClick={closeModal}>Open admin control room <ArrowRight size={14} /></Link>
             )}
             {showAccountFlow && <p className="fine-print">Discord verification is required for every action. The pasted X username remains unverified attribution.</p>}
           </motion.section>

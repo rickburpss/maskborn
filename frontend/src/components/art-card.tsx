@@ -10,38 +10,64 @@ import { apiFetch } from "@/lib/api";
 import type { Artwork, VoteValue } from "@/lib/types";
 
 export function ArtCard({ artwork, index }: { artwork: Artwork; index: number }) {
-  const [vote, setVote] = useState<VoteValue>(null);
+  const [vote, setVote] = useState<VoteValue>(artwork.viewerVote?.value.toLowerCase() as VoteValue ?? null);
+  const [voteCategory, setVoteCategory] = useState<string | null>(artwork.viewerVote?.category ?? null);
+  const [voteIntent, setVoteIntent] = useState<Exclude<VoteValue, null> | null>(null);
+  const [counts, setCounts] = useState({ up: artwork.upvotes, down: artwork.downvotes });
   const [shared, setShared] = useState(false);
   const [activePreview, setActivePreview] = useState<string | null>(null);
   const session = useCurrentUser();
-  const discordVerified = session.data?.user.socialAccounts.some(
+  const discordVerified = session.data?.user?.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   );
 
-  const upvotes = artwork.upvotes + (vote === "up" ? 1 : 0);
-  const downvotes = artwork.downvotes + (vote === "down" ? 1 : 0);
+  const upvotes = counts.up;
+  const downvotes = counts.down;
   const selectedVariant = artwork.previewVariants?.find((variant) => variant.id === activePreview);
   const defaultVariant = artwork.previewVariants?.reduce((largest, variant) =>
     variant.categories.length > largest.categories.length ? variant : largest);
   const previewSource = selectedVariant?.url ?? artwork.previewAssetUrl;
 
-  const applyVote = async (next: Exclude<VoteValue, null>) => {
+  const voteCategories = artwork.categories ?? [];
+  const applyVote = async (next: Exclude<VoteValue, null>, selectedCategory?: string) => {
     if (!discordVerified) {
       window.dispatchEvent(new CustomEvent("maskborn:connect"));
       return;
     }
     const previous = vote;
+    const previousCategory = voteCategory;
+    const previousCounts = counts;
     const desired = previous === next ? null : next;
+    if (desired && voteCategories.length > 1 && !selectedCategory) {
+      setVoteIntent(next);
+      return;
+    }
+    const category = selectedCategory ?? voteCategory ?? (voteCategories.length === 1 ? voteCategories[0] : null);
     setVote(desired);
+    setVoteCategory(desired ? category : null);
+    setCounts((current) => ({
+      up: current.up + (previous === "up" ? -1 : 0) + (desired === "up" ? 1 : 0),
+      down: current.down + (previous === "down" ? -1 : 0) + (desired === "down" ? 1 : 0),
+    }));
+    setVoteIntent(null);
     try {
-      const result = await apiFetch<{ vote: "UP" | "DOWN" | null }>(`/submissions/${artwork.id}/vote`, {
+      const result = await apiFetch<{
+        vote: "UP" | "DOWN" | null;
+        category: string | null;
+        upvotes: number;
+        downvotes: number;
+      }>(`/submissions/${artwork.id}/vote`, {
         method: "PUT",
         headers: { "idempotency-key": crypto.randomUUID() },
-        body: JSON.stringify({ value: desired?.toUpperCase() ?? null }),
+        body: JSON.stringify({ value: desired?.toUpperCase() ?? null, category }),
       });
       setVote(result.vote?.toLowerCase() as VoteValue);
+      setVoteCategory(result.category);
+      setCounts({ up: result.upvotes, down: result.downvotes });
     } catch (error) {
       setVote(previous);
+      setVoteCategory(previousCategory);
+      setCounts(previousCounts);
       if (["AUTH_REQUIRED", "DISCORD_REQUIRED"].includes((error as Error & { code?: string }).code ?? "")) {
         window.dispatchEvent(new CustomEvent("maskborn:connect"));
       }
@@ -97,6 +123,33 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
             {artwork.creator}<ArrowUpRight size={13} />
           </a>
         ) : <span className="creator-link">{artwork.creator}</span>}
+        <AnimatePresence>
+          {voteIntent && (
+            <motion.div
+              className="trait-vote-picker"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 5 }}
+            >
+              <span>{voteIntent === "up" ? "Upvote which trait?" : "Downvote which trait?"}</span>
+              <div>
+                {voteCategories.map((category) => {
+                  const totals = artwork.traitVotes?.find((item) => item.category === category);
+                  return (
+                    <button type="button" key={category} onClick={() => applyVote(voteIntent, category)}>
+                      {category.charAt(0) + category.slice(1).toLowerCase()}
+                      <small>{totals?.upvotes ?? 0} up</small>
+                    </button>
+                  );
+                })}
+              </div>
+              <button type="button" className="trait-vote-cancel" onClick={() => setVoteIntent(null)}>Cancel</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {voteCategory && (
+          <p className="vote-target">Your vote: {voteCategory.charAt(0) + voteCategory.slice(1).toLowerCase()}</p>
+        )}
         <div className="vote-row">
           <button className={vote === "up" ? "voted" : ""} onClick={() => applyVote("up")} aria-label={`Upvote ${artwork.title}`}>
             <ThumbsUp size={15} fill={vote === "up" ? "currentColor" : "none"} /> {upvotes}

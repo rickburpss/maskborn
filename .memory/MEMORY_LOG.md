@@ -242,3 +242,33 @@
   copy clipped to rounded corners. The collection's source artwork remains square and
   unchanged.
 - Frontend TypeScript, ESLint, all 16 tests, and the production build passed.
+
+## 2026-07-27 — Trait voting, discovery controls, sharing, and navigation
+
+- Fixed logout so the backend clears the production cookie with matching security
+  attributes and the frontend immediately replaces the cached session with `{ user:
+  null }`. The header, modal, profile, draw studio, and voting controls now update
+  without a page refresh.
+- Added nullable `category` fields and indexes to `Vote` and `VoteEvent`. Multi-trait
+  posts require the voter to choose Background, Eyes, Hats, or Special; single-trait
+  posts infer the category and 1/1 votes remain category-free.
+- Public submission responses now include per-trait vote totals and the signed-in
+  viewer's current vote. Cards and artwork detail pages restore vote state after a
+  refresh and show a compact trait chooser before a multi-trait upvote or downvote.
+- Added community search plus sorting by overall likes and selected-trait likes.
+  Accepted Gallery, Profile submissions, Admin review queue, and collection samples
+  also gained responsive search/sort controls appropriate to their data.
+- Added per-artwork `generateMetadata` and a 1200x630 PNG Open Graph renderer with the
+  artwork, title, creator, categories, and vote totals. Shared artwork links now open
+  on a directly votable detail page and copy the URL when native sharing is absent.
+- Added `ADMIN_DISCORD_IDS` as a backend allowlist. An allowlisted Discord callback
+  promotes that profile to `ADMIN`; Admin then appears in the expanded desktop nav,
+  mobile drawer, and Connect modal. Added `docs/ADMIN_SETUP.md`.
+- Desktop navigation now contracts after scrolling and expands on hover/focus. The
+  Menu drawer exists only below 800px. Added Collection to both navigation forms.
+- Expanded normal generator previews from 16 to 48 using the JavaScript renderer and
+  immutable dynamic SVG sample routes. Removed “Generated Maskborn” labels and changed
+  carousel names to “Maskborn #…”.
+- Updated `PLAN.md` for category-targeted votes and trait ranking.
+- Verification passed: Prisma generation and validation, backend TypeScript/build and
+  7 tests; frontend TypeScript, ESLint, production build, and 16 renderer tests.

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Prisma, VoteValue } from "../generated/prisma/client.js";
+import { GeneratorCategory, Prisma, VoteValue } from "../generated/prisma/client.js";
 import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
@@ -7,7 +7,10 @@ import { requireVerifiedDiscord } from "../middleware/auth.js";
 import { asyncRoute, requestHash, signalHash } from "../utils.js";
 
 export const votesRouter = Router();
-const voteBody = z.object({ value: z.nativeEnum(VoteValue).nullable() });
+const voteBody = z.object({
+  value: z.nativeEnum(VoteValue).nullable(),
+  category: z.nativeEnum(GeneratorCategory).nullable().optional(),
+});
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 const FIVE_MINUTES = 5 * 60 * 1000;
 
@@ -68,7 +71,15 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
   const result = await db.$transaction(async (tx) => {
     const submission = await tx.submission.findUnique({
       where: { id: submissionId },
-      select: { id: true, publishedAt: true, upvoteCount: true, downvoteCount: true, status: true },
+      select: {
+        id: true,
+        kind: true,
+        categories: true,
+        publishedAt: true,
+        upvoteCount: true,
+        downvoteCount: true,
+        status: true,
+      },
     });
     if (!submission || ["REJECTED", "WITHDRAWN"].includes(submission.status)) {
       throw new ApiError(404, "SUBMISSION_NOT_FOUND", "That artwork was not found.");
@@ -82,9 +93,19 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
       where: { submissionId_userId: { submissionId: submission.id, userId } },
     });
     const fromValue = existing?.value ?? null;
-    if (fromValue === body.value) {
+    const requestedCategory = submission.kind === "ONE_OF_ONE"
+      ? null
+      : body.category ?? (submission.categories.length === 1 ? submission.categories[0] : null);
+    if (body.value !== null && submission.kind === "TRAIT_EXTENSION") {
+      if (!requestedCategory || !submission.categories.includes(requestedCategory)) {
+        throw new ApiError(422, "VOTE_TRAIT_REQUIRED", "Choose which trait this vote is for.");
+      }
+    }
+    const category = body.value === null ? existing?.category ?? requestedCategory : requestedCategory;
+    if (fromValue === body.value && existing?.category === category) {
       const response = {
         vote: fromValue,
+        category,
         upvotes: submission.upvoteCount,
         downvotes: submission.downvoteCount,
         closesAt,
@@ -111,8 +132,8 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
     } else if (body.value !== null) {
       await tx.vote.upsert({
         where: { submissionId_userId: { submissionId: submission.id, userId } },
-        create: { submissionId: submission.id, userId, value: body.value },
-        update: { value: body.value },
+        create: { submissionId: submission.id, userId, value: body.value, category },
+        update: { value: body.value, category },
       });
     }
 
@@ -130,11 +151,18 @@ votesRouter.put("/submissions/:id/vote", requireVerifiedDiscord, asyncRoute(asyn
         userId,
         fromValue,
         toValue: body.value,
+        category,
         signalHash: signal,
         requestId: req.id,
       },
     });
-    const response = { vote: body.value, upvotes: updated.upvoteCount, downvotes: updated.downvoteCount, closesAt };
+    const response = {
+      vote: body.value,
+      category,
+      upvotes: updated.upvoteCount,
+      downvotes: updated.downvoteCount,
+      closesAt,
+    };
     await tx.idempotencyRecord.create({
       data: {
         userId, scope, key: idempotencyKey, requestHash: payloadHash,

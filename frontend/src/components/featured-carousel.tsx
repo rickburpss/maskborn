@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import collection from "@/generated/collection.json";
+import { collectionSamples } from "@/lib/generated-samples";
 
 const offsetFor = (index: number, active: number, count: number) => {
   let offset = index - active;
@@ -21,13 +22,13 @@ export function FeaturedCarousel() {
   const reduceMotion = useReducedMotion();
   const featured = useMemo(() => {
     const redPanda = collection.legends.find((legend) => legend.slug === "red-panda")!;
-    const generated = collection.fixtures.map((fixture) => ({
+    const generated = collectionSamples.map((fixture) => ({
       index: fixture.id,
-      name: `Generated #${String(fixture.id).padStart(4, "0")}`,
+      name: `Maskborn #${String(fixture.id).padStart(4, "0")}`,
       slug: `generated-${fixture.id}`,
       preview: fixture.preview,
       note: "A normal generator combination.",
-      kind: "Generated" as const,
+      kind: "Collection" as const,
     }));
     return [{ ...redPanda, kind: "1/1" as const }, ...generated];
   }, []);
