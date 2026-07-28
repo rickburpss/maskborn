@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, LoaderCircle } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
 
@@ -13,11 +14,20 @@ const oauthMessages: Record<string, string> = {
   "profile-failed": "Discord signed in, but the profile could not be read.",
   "bot-account": "Bot accounts cannot verify a Mask Born profile.",
   "create-profile-first": "Create your Mask Born profile first, then link Discord.",
+  "no-account": "No Mask Born account is linked to that Discord. Create an account first, then link it.",
 };
 
 export default function DiscordConnectPage() {
   const [attempt, setAttempt] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [intent] = useState<"login" | "link">(() => {
+    if (typeof window === "undefined") return "link";
+    return new URLSearchParams(window.location.search).get("intent") === "login" ? "login" : "link";
+  });
+  const [errorCode] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("error") ?? "";
+  });
   const [oauthError, setOauthError] = useState(() => {
     if (typeof window === "undefined") return "";
     const code = new URLSearchParams(window.location.search).get("error");
@@ -40,7 +50,7 @@ export default function DiscordConnectPage() {
         const response = await fetch(healthUrl, { credentials: "include", cache: "no-store" });
         const body = await response.json().catch(() => null) as { ok?: boolean } | null;
         if (response.ok && body?.ok) {
-          window.location.assign(discordUrl);
+          window.location.assign(`${discordUrl}?intent=${intent}`);
           return;
         }
       } catch {
@@ -59,7 +69,7 @@ export default function DiscordConnectPage() {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
     };
-  }, [attempt, oauthError]);
+  }, [attempt, intent, oauthError]);
 
   return (
     <section className="discord-wake shell">
@@ -71,8 +81,10 @@ export default function DiscordConnectPage() {
           ? "Try again and we will continue with Discord as soon as it is awake."
           : "Stay here your Discord login will open automatically when it is ready.")}
       </p>
-      {(failed || oauthError) && <button className="button button-amber" onClick={() => {
-        window.history.replaceState({}, "", "/connect/discord");
+      {errorCode === "no-account" ? (
+        <Link className="button button-amber" href="/?connect=create">Create account <ArrowRight size={16} /></Link>
+      ) : (failed || oauthError) && <button className="button button-amber" onClick={() => {
+        window.history.replaceState({}, "", `/connect/discord?intent=${intent}`);
         setOauthError("");
         wake();
       }}>Try again <ArrowRight size={16} /></button>}

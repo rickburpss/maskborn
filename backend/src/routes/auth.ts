@@ -4,7 +4,7 @@ import { z } from "zod";
 import { adminDiscordIds, config } from "../config.js";
 import { db } from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
-import { createOAuthState, validateOAuthState } from "../oauth-state.js";
+import { createOAuthState, readOAuthState } from "../oauth-state.js";
 import { asyncRoute } from "../utils.js";
 
 export const authRouter = Router();
@@ -15,10 +15,6 @@ const sessionLifetimeMs = 365 * 24 * 60 * 60 * 1000;
 const cookieSecurity = {
   secure: config.NODE_ENV === "production",
   sameSite: config.NODE_ENV === "production" ? "none" as const : "lax" as const,
-};
-const discordStateCookie = {
-  secure: config.NODE_ENV === "production",
-  sameSite: "lax" as const,
 };
 const discordErrorUrl = (code: string) =>
   `${config.FRONTEND_URL}/connect/discord?error=${encodeURIComponent(code)}`;
@@ -99,12 +95,13 @@ authRouter.post("/auth/username", asyncRoute(async (req, res) => {
   });
 }));
 
-authRouter.get("/auth/discord/start", asyncRoute(async (_req, res) => {
+authRouter.get("/auth/discord/start", asyncRoute(async (req, res) => {
   if (!config.DISCORD_CLIENT_ID || !config.DISCORD_CLIENT_SECRET || !config.DISCORD_CALLBACK_URL) {
     res.redirect(discordErrorUrl("not-configured"));
     return;
   }
-  const state = createOAuthState(config.SIGNAL_PEPPER);
+  const intent = req.query.intent === "login" ? "login" : "link";
+  const state = createOAuthState(config.SIGNAL_PEPPER, intent);
   const params = new URLSearchParams({
     response_type: "code",
     client_id: config.DISCORD_CLIENT_ID,
@@ -122,7 +119,8 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
   }
   const code = typeof req.query.code === "string" ? req.query.code : "";
   const state = typeof req.query.state === "string" ? req.query.state : "";
-  if (!code || !validateOAuthState(state, config.SIGNAL_PEPPER)) {
+  const intent = readOAuthState(state, config.SIGNAL_PEPPER);
+  if (!code || !intent) {
     res.redirect(discordErrorUrl("invalid-state"));
     return;
   }
@@ -174,6 +172,10 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
     },
   });
   const currentAuth = req.auth;
+  if (!linked && intent === "login") {
+    res.redirect(discordErrorUrl("no-account"));
+    return;
+  }
   if (!linked && !currentAuth) {
     res.redirect(discordErrorUrl("create-profile-first"));
     return;
@@ -232,7 +234,6 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
       expiresAt: new Date(Date.now() + sessionLifetimeMs),
     },
   });
-  res.clearCookie("mbo_discord_state", discordStateCookie);
   setSessionCookie(res, sessionToken);
   res.redirect(`${config.FRONTEND_URL}/profile?discord=linked`);
 }));

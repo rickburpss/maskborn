@@ -416,3 +416,20 @@
   still cleared after a successful callback.
 - Added focused state security tests. Backend TypeScript, build, and 14 tests passed;
   frontend ESLint and production build passed.
+
+## 2026-07-28 — Reliable Discord sessions and account-aware login
+
+- Added an explicit dynamic Next.js `/api/[...path]` proxy that forwards API methods,
+  query strings, request cookies, redirects, and response `Set-Cookie` headers between
+  Vercel and Render. This replaces reliance on an external rewrite for the OAuth
+  callback and makes the new session visible immediately on `/profile?discord=linked`.
+- Discord OAuth state now carries a signed `login` or `link` intent. The “Have an
+  account” button uses login-only mode: a Discord identity not already linked to a
+  Mask Born account is rejected with a clear “No account linked; create one first”
+  message instead of being silently attached to a partial session.
+- The account-creation flow remains link mode, so a newly created X profile can link
+  its Discord normally. Intent is covered by the same short expiry and HMAC tamper
+  validation as the OAuth state. The no-account result includes a Create account
+  action that returns home and opens the modal directly in its creation flow.
+- Backend TypeScript, build, and 16 tests passed. Frontend ESLint, 21 tests, and the
+  production build passed; the route manifest includes dynamic `/api/[...path]`.

@@ -26,6 +26,7 @@ export function SiteHeader() {
   const [navHovered, setNavHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
+  const [createAccountFlow, setCreateAccountFlow] = useState(false);
   const localTwitter = useSessionStore((state) => state.twitter);
   const session = useCurrentUser();
   const xAccount = session.data?.user?.socialAccounts.find((account) => account.provider === "X_MANUAL");
@@ -42,9 +43,22 @@ export function SiteHeader() {
   useMotionValueEvent(scrollY, "change", (value) => setCompact(value > 90));
 
   useEffect(() => {
-    const openConnect = () => setConnectOpen(true);
+    const openConnect = () => {
+      setCreateAccountFlow(false);
+      setConnectOpen(true);
+    };
     window.addEventListener("maskborn:connect", openConnect);
     return () => window.removeEventListener("maskborn:connect", openConnect);
+  }, []);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("connect") !== "create") return;
+    window.history.replaceState({}, "", window.location.pathname);
+    const timer = window.setTimeout(() => {
+      setCreateAccountFlow(true);
+      setConnectOpen(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -115,7 +129,10 @@ export function SiteHeader() {
             )}
           </AnimatePresence>
         </motion.nav>
-        <button className="connect-button" onClick={() => setConnectOpen(true)}>
+        <button className="connect-button" onClick={() => {
+          setCreateAccountFlow(false);
+          setConnectOpen(true);
+        }}>
           <span className={discordVerified ? "status-dot online" : "status-dot"} />
           {discordVerified ? (twitter?.replace("@", "") ?? "Discord linked") : (twitter ? "Verify" : "Connect")}
         </button>
@@ -138,7 +155,15 @@ export function SiteHeader() {
         )}
       </AnimatePresence>
 
-      <ConnectModal open={connectOpen} onClose={() => setConnectOpen(false)} />
+      <ConnectModal
+        key={createAccountFlow ? "create-account" : "connect"}
+        open={connectOpen}
+        startCreatingAccount={createAccountFlow}
+        onClose={() => {
+          setConnectOpen(false);
+          setCreateAccountFlow(false);
+        }}
+      />
     </>
   );
 }

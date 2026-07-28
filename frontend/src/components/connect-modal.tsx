@@ -12,7 +12,15 @@ import { useSessionStore } from "@/store/session";
 const walletPattern = /^(0x[a-fA-F0-9]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})$/;
 const usernamePattern = /^@?[A-Za-z0-9_]{1,15}$/;
 
-export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function ConnectModal({
+  open,
+  onClose,
+  startCreatingAccount = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  startCreatingAccount?: boolean;
+}) {
   const local = useSessionStore();
   const session = useCurrentUser();
   const queryClient = useQueryClient();
@@ -29,7 +37,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
   const [walletInput, setWalletInput] = useState(wallet ?? "");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(startCreatingAccount);
   const isSignedIn = Boolean(session.data?.user?.id);
   const showAccountChoice = !session.isLoading && !isSignedIn && !creatingAccount;
   const showAccountFlow = isSignedIn || creatingAccount;
@@ -117,7 +125,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
 
             {showAccountChoice && (
               <div className="account-choice">
-                <Link className="account-choice-button" href="/connect/discord" onClick={closeModal}>
+                <Link className="account-choice-button" href="/connect/discord?intent=login" onClick={closeModal}>
                   <LogIn size={19} />
                   <span><b>Have an account</b><small>Log in with linked Discord</small></span>
                   <ArrowRight size={17} />
