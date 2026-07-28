@@ -191,6 +191,65 @@ h3 {
 .pixel-art img {
   object-fit: contain;
   image-rendering: pixelated;
+  transition: opacity 180ms ease;
+}
+
+.pixel-art img.loading {
+  opacity: 0;
+}
+
+.pixel-art img.loaded {
+  opacity: 1;
+}
+
+.pixel-art-loader {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  background: rgba(237, 234, 226, 0.92);
+  place-items: center;
+  pointer-events: none;
+}
+
+.dot-loader {
+  display: grid;
+  min-height: 180px;
+  width: 100%;
+  place-items: center;
+}
+
+.dot-loader > div {
+  display: flex;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.dot-loader > div > span {
+  display: inline-block;
+  color: var(--ink);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 42px;
+  line-height: 1;
+  transform-origin: center bottom;
+}
+
+.dot-loader > div > span:last-child {
+  color: var(--amber-dark);
+}
+
+.dot-loader.compact {
+  min-height: 0;
+}
+
+.dot-loader.compact > div {
+  height: 34px;
+}
+
+.dot-loader.compact > div > span {
+  font-size: 31px;
 }
 
 .site-header {

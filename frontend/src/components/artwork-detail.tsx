@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowUpRight, Share2, ThumbsDown, ThumbsUp } from "lucide-re
 import Link from "next/link";
 import { useState } from "react";
 import { ArtworkVoteControls } from "@/components/artwork-vote-controls";
+import { DotLoader } from "@/components/dot-loader";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { apiFetch } from "@/lib/api";
 
@@ -34,7 +35,7 @@ export function ArtworkDetail({ slug }: { slug: string }) {
   });
 
   if (submission.isLoading) {
-    return <section className="art-detail shell"><div className="empty-state">Loading artwork…</div></section>;
+    return <section className="art-detail shell"><DotLoader label="Loading artwork" /></section>;
   }
   if (submission.isError || !submission.data) {
     return (

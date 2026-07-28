@@ -5,6 +5,7 @@ import { ArrowUpRight, ChevronDown, Copy, FilePenLine, Plus, Search, WalletCards
 import Link from "next/link";
 import { useState } from "react";
 import { ArtCard } from "@/components/art-card";
+import { DotLoader } from "@/components/dot-loader";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { apiFetch } from "@/lib/api";
@@ -116,6 +117,7 @@ export function ProfileDashboard() {
           <div className="art-grid profile-creations">
             {visibleUserArt.map((art, index) => <ArtCard key={art.id} artwork={art} index={index} />)}
           </div>
+          {profile.isLoading && <DotLoader label="Loading your submissions" />}
           {!profile.isLoading && userArt.length === 0 && <div className="empty-state">You have not published a creation yet.</div>}
           {userArt.length > 0 && visibleUserArt.length === 0 && <div className="empty-state">No submission matches that search.</div>}
         </div>

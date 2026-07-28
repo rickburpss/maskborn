@@ -5,6 +5,7 @@ import { ArrowUpRight, ChevronDown, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
+import { DotLoader } from "@/components/dot-loader";
 import { apiFetch } from "@/lib/api";
 
 type GalleryEntry = {
@@ -102,7 +103,7 @@ export function GalleryBrowser() {
           );
         })}
       </div>
-      {gallery.isLoading && <div className="empty-state">Loading accepted work…</div>}
+      {gallery.isLoading && <DotLoader label="Loading accepted work" />}
       {gallery.isError && <div className="empty-state">The gallery could not be loaded. Try again shortly.</div>}
       {!gallery.isLoading && !gallery.isError && entries.length === 0 && (
         <div className="empty-state">{(gallery.data?.items.length ?? 0) === 0 ? "No community work has been accepted yet." : "No accepted work matches this filter."}</div>

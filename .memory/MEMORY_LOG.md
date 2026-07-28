@@ -367,3 +367,16 @@
 - Backend TypeScript, 12 tests, and production build; frontend TypeScript, ESLint, 20
   tests, and production build passed. The production route manifest contains
   `/mboadmin` and no `/admin` route.
+
+## 2026-07-28 — Motion collection loaders
+
+- Added a reusable four-dot Motion loader with staggered lift, scale, and opacity
+  animation; the final dot uses the warm amber accent.
+- Added full collection-fetch loaders to Community, Gallery, Profile submissions,
+  artwork detail, and the admin review queue.
+- Added a compact overlay loader to `PixelArtwork`, covering collection samples,
+  carousel items, gallery art, submission cards, and profile artwork until each image
+  actually finishes loading. Failed images stop the loader instead of spinning forever.
+- The animation respects the operating system's reduced-motion preference and includes
+  an accessible status label while keeping the visible design to dots only.
+- Frontend TypeScript, ESLint, all 20 tests, and the production build passed.

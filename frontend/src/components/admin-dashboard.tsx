@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowRight, Check, ChevronDown, Clock3, Search, ShieldCheck, UserRound } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
+import { DotLoader } from "@/components/dot-loader";
 import { apiFetch } from "@/lib/api";
 
 type ReviewItem = {
@@ -79,7 +80,7 @@ export function AdminDashboard() {
           <article><span>Vote restrictions</span><b>—</b><p><ShieldCheck size={13} /> Not loaded on this screen</p></article>
           <article><span>Pending payouts</span><b>—</b><p>Not loaded on this screen</p></article>
         </div>
-        {queue.isLoading && <div className="empty-state">Loading the review queue…</div>}
+        {queue.isLoading && <DotLoader label="Loading the review queue" />}
         {queue.isError && <div className="empty-state">The review queue could not be loaded. Confirm this account has admin access.</div>}
         {!queue.isLoading && !queue.isError && items.length === 0 && <div className="empty-state">{allItems?.length ? "No submissions match those filters." : "There are no submissions waiting for review."}</div>}
         {selected && (

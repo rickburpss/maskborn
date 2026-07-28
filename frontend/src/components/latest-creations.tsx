@@ -4,6 +4,7 @@ import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ArtCard } from "@/components/art-card";
+import { DotLoader } from "@/components/dot-loader";
 import { SectionHeading } from "@/components/section-heading";
 import { apiFetch } from "@/lib/api";
 import type { ArtType, Artwork } from "@/lib/types";
@@ -127,7 +128,7 @@ export function LatestCreations({ limit }: { limit?: number }) {
       <div className="art-grid">
         {visible.map((artwork, index) => <ArtCard key={artwork.id} artwork={artwork} index={index} />)}
       </div>
-      {feed.isLoading && <div className="empty-state">Loading community submissions…</div>}
+      {feed.isLoading && <DotLoader label="Loading community submissions" />}
       {feed.isError && <div className="empty-state">Community submissions could not be loaded. Try again shortly.</div>}
       {!feed.isLoading && !feed.isError && visible.length === 0 && (
         <div className="empty-state">
