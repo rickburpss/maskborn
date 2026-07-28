@@ -30,6 +30,7 @@ export type SocialAccountMinAggregateOutputType = {
   provider: string | null
   providerAccountId: string | null
   username: string | null
+  claimKey: string | null
   verificationState: $Enums.VerificationState | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -41,6 +42,7 @@ export type SocialAccountMaxAggregateOutputType = {
   provider: string | null
   providerAccountId: string | null
   username: string | null
+  claimKey: string | null
   verificationState: $Enums.VerificationState | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -52,6 +54,7 @@ export type SocialAccountCountAggregateOutputType = {
   provider: number
   providerAccountId: number
   username: number
+  claimKey: number
   verificationState: number
   createdAt: number
   updatedAt: number
@@ -65,6 +68,7 @@ export type SocialAccountMinAggregateInputType = {
   provider?: true
   providerAccountId?: true
   username?: true
+  claimKey?: true
   verificationState?: true
   createdAt?: true
   updatedAt?: true
@@ -76,6 +80,7 @@ export type SocialAccountMaxAggregateInputType = {
   provider?: true
   providerAccountId?: true
   username?: true
+  claimKey?: true
   verificationState?: true
   createdAt?: true
   updatedAt?: true
@@ -87,6 +92,7 @@ export type SocialAccountCountAggregateInputType = {
   provider?: true
   providerAccountId?: true
   username?: true
+  claimKey?: true
   verificationState?: true
   createdAt?: true
   updatedAt?: true
@@ -171,6 +177,7 @@ export type SocialAccountGroupByOutputType = {
   provider: string
   providerAccountId: string
   username: string
+  claimKey: string | null
   verificationState: $Enums.VerificationState
   createdAt: Date
   updatedAt: Date
@@ -203,6 +210,7 @@ export type SocialAccountWhereInput = {
   provider?: Prisma.StringFilter<"SocialAccount"> | string
   providerAccountId?: Prisma.StringFilter<"SocialAccount"> | string
   username?: Prisma.StringFilter<"SocialAccount"> | string
+  claimKey?: Prisma.StringNullableFilter<"SocialAccount"> | string | null
   verificationState?: Prisma.EnumVerificationStateFilter<"SocialAccount"> | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFilter<"SocialAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SocialAccount"> | Date | string
@@ -215,6 +223,7 @@ export type SocialAccountOrderByWithRelationInput = {
   provider?: Prisma.SortOrder
   providerAccountId?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  claimKey?: Prisma.SortOrderInput | Prisma.SortOrder
   verificationState?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -223,6 +232,7 @@ export type SocialAccountOrderByWithRelationInput = {
 
 export type SocialAccountWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  claimKey?: string
   provider_providerAccountId?: Prisma.SocialAccountProviderProviderAccountIdCompoundUniqueInput
   AND?: Prisma.SocialAccountWhereInput | Prisma.SocialAccountWhereInput[]
   OR?: Prisma.SocialAccountWhereInput[]
@@ -235,7 +245,7 @@ export type SocialAccountWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"SocialAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SocialAccount"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "provider_providerAccountId">
+}, "id" | "claimKey" | "provider_providerAccountId">
 
 export type SocialAccountOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -243,6 +253,7 @@ export type SocialAccountOrderByWithAggregationInput = {
   provider?: Prisma.SortOrder
   providerAccountId?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  claimKey?: Prisma.SortOrderInput | Prisma.SortOrder
   verificationState?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -260,6 +271,7 @@ export type SocialAccountScalarWhereWithAggregatesInput = {
   provider?: Prisma.StringWithAggregatesFilter<"SocialAccount"> | string
   providerAccountId?: Prisma.StringWithAggregatesFilter<"SocialAccount"> | string
   username?: Prisma.StringWithAggregatesFilter<"SocialAccount"> | string
+  claimKey?: Prisma.StringNullableWithAggregatesFilter<"SocialAccount"> | string | null
   verificationState?: Prisma.EnumVerificationStateWithAggregatesFilter<"SocialAccount"> | $Enums.VerificationState
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SocialAccount"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SocialAccount"> | Date | string
@@ -270,6 +282,7 @@ export type SocialAccountCreateInput = {
   provider: string
   providerAccountId: string
   username: string
+  claimKey?: string | null
   verificationState?: $Enums.VerificationState
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -282,6 +295,7 @@ export type SocialAccountUncheckedCreateInput = {
   provider: string
   providerAccountId: string
   username: string
+  claimKey?: string | null
   verificationState?: $Enums.VerificationState
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -292,6 +306,7 @@ export type SocialAccountUpdateInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  claimKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verificationState?: Prisma.EnumVerificationStateFieldUpdateOperationsInput | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -304,6 +319,7 @@ export type SocialAccountUncheckedUpdateInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  claimKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verificationState?: Prisma.EnumVerificationStateFieldUpdateOperationsInput | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -315,6 +331,7 @@ export type SocialAccountCreateManyInput = {
   provider: string
   providerAccountId: string
   username: string
+  claimKey?: string | null
   verificationState?: $Enums.VerificationState
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -325,6 +342,7 @@ export type SocialAccountUpdateManyMutationInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  claimKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verificationState?: Prisma.EnumVerificationStateFieldUpdateOperationsInput | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -336,6 +354,7 @@ export type SocialAccountUncheckedUpdateManyInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  claimKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verificationState?: Prisma.EnumVerificationStateFieldUpdateOperationsInput | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -362,6 +381,7 @@ export type SocialAccountCountOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   providerAccountId?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  claimKey?: Prisma.SortOrder
   verificationState?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -373,6 +393,7 @@ export type SocialAccountMaxOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   providerAccountId?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  claimKey?: Prisma.SortOrder
   verificationState?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -384,6 +405,7 @@ export type SocialAccountMinOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   providerAccountId?: Prisma.SortOrder
   username?: Prisma.SortOrder
+  claimKey?: Prisma.SortOrder
   verificationState?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -440,6 +462,7 @@ export type SocialAccountCreateWithoutUserInput = {
   provider: string
   providerAccountId: string
   username: string
+  claimKey?: string | null
   verificationState?: $Enums.VerificationState
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -450,6 +473,7 @@ export type SocialAccountUncheckedCreateWithoutUserInput = {
   provider: string
   providerAccountId: string
   username: string
+  claimKey?: string | null
   verificationState?: $Enums.VerificationState
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -490,6 +514,7 @@ export type SocialAccountScalarWhereInput = {
   provider?: Prisma.StringFilter<"SocialAccount"> | string
   providerAccountId?: Prisma.StringFilter<"SocialAccount"> | string
   username?: Prisma.StringFilter<"SocialAccount"> | string
+  claimKey?: Prisma.StringNullableFilter<"SocialAccount"> | string | null
   verificationState?: Prisma.EnumVerificationStateFilter<"SocialAccount"> | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFilter<"SocialAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SocialAccount"> | Date | string
@@ -500,6 +525,7 @@ export type SocialAccountCreateManyUserInput = {
   provider: string
   providerAccountId: string
   username: string
+  claimKey?: string | null
   verificationState?: $Enums.VerificationState
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -510,6 +536,7 @@ export type SocialAccountUpdateWithoutUserInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  claimKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verificationState?: Prisma.EnumVerificationStateFieldUpdateOperationsInput | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -520,6 +547,7 @@ export type SocialAccountUncheckedUpdateWithoutUserInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  claimKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verificationState?: Prisma.EnumVerificationStateFieldUpdateOperationsInput | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -530,6 +558,7 @@ export type SocialAccountUncheckedUpdateManyWithoutUserInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   providerAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
+  claimKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   verificationState?: Prisma.EnumVerificationStateFieldUpdateOperationsInput | $Enums.VerificationState
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -543,6 +572,7 @@ export type SocialAccountSelect<ExtArgs extends runtime.Types.Extensions.Interna
   provider?: boolean
   providerAccountId?: boolean
   username?: boolean
+  claimKey?: boolean
   verificationState?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -555,6 +585,7 @@ export type SocialAccountSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   provider?: boolean
   providerAccountId?: boolean
   username?: boolean
+  claimKey?: boolean
   verificationState?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -567,6 +598,7 @@ export type SocialAccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   provider?: boolean
   providerAccountId?: boolean
   username?: boolean
+  claimKey?: boolean
   verificationState?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -579,12 +611,13 @@ export type SocialAccountSelectScalar = {
   provider?: boolean
   providerAccountId?: boolean
   username?: boolean
+  claimKey?: boolean
   verificationState?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type SocialAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "provider" | "providerAccountId" | "username" | "verificationState" | "createdAt" | "updatedAt", ExtArgs["result"]["socialAccount"]>
+export type SocialAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "provider" | "providerAccountId" | "username" | "claimKey" | "verificationState" | "createdAt" | "updatedAt", ExtArgs["result"]["socialAccount"]>
 export type SocialAccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -606,6 +639,7 @@ export type $SocialAccountPayload<ExtArgs extends runtime.Types.Extensions.Inter
     provider: string
     providerAccountId: string
     username: string
+    claimKey: string | null
     verificationState: $Enums.VerificationState
     createdAt: Date
     updatedAt: Date
@@ -1038,6 +1072,7 @@ export interface SocialAccountFieldRefs {
   readonly provider: Prisma.FieldRef<"SocialAccount", 'String'>
   readonly providerAccountId: Prisma.FieldRef<"SocialAccount", 'String'>
   readonly username: Prisma.FieldRef<"SocialAccount", 'String'>
+  readonly claimKey: Prisma.FieldRef<"SocialAccount", 'String'>
   readonly verificationState: Prisma.FieldRef<"SocialAccount", 'VerificationState'>
   readonly createdAt: Prisma.FieldRef<"SocialAccount", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SocialAccount", 'DateTime'>

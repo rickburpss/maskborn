@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ArtCard } from "@/components/art-card";
 import { DotLoader } from "@/components/dot-loader";
@@ -16,9 +16,9 @@ export function LatestCreations({ limit }: { limit?: number }) {
   const [sort, setSort] = useState("Newest");
   const [category, setCategory] = useState("All work");
   const [search, setSearch] = useState("");
-  const feed = useQuery({
+  const feed = useInfiniteQuery({
     queryKey: ["submissions", "feed"],
-    queryFn: () => apiFetch<{ items: Array<{
+    queryFn: ({ pageParam }) => apiFetch<{ items: Array<{
       id: string;
       slug: string;
       title: string;
@@ -35,12 +35,14 @@ export function LatestCreations({ limit }: { limit?: number }) {
       publishedAt: string;
       user: { displayName: string | null; socialAccounts: Array<{ username: string }> };
       galleryEntry: unknown | null;
-    }> }>("/submissions?limit=60"),
+    }>; nextCursor: string | null }>(`/submissions?limit=24${pageParam ? `&cursor=${encodeURIComponent(pageParam)}` : ""}`),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     retry: false,
   });
   const source = useMemo<Artwork[]>(() => {
     if (!feed.data) return [];
-    return feed.data.items.map((item, index) => {
+    return feed.data.pages.flatMap((page) => page.items).map((item, index) => {
       const username = item.user.socialAccounts[0]?.username;
       return {
         id: item.id,
@@ -133,6 +135,14 @@ export function LatestCreations({ limit }: { limit?: number }) {
       {!feed.isLoading && !feed.isError && visible.length === 0 && (
         <div className="empty-state">
           {source.length === 0 ? "No community work has been published yet." : "Nothing has landed in this filter yet."}
+        </div>
+      )}
+      {!limit && feed.hasNextPage && (
+        <div className="load-more-row">
+          <button className="button button-dark" disabled={feed.isFetchingNextPage} onClick={() => feed.fetchNextPage()}>
+            {feed.isFetchingNextPage ? "Loading next batch…" : "Load 24 more"}
+          </button>
+          <span>{source.length} submissions loaded</span>
         </div>
       )}
     </section>

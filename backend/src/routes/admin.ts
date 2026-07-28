@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { GalleryEntryKind, GeneratorCategory, PublicationState, RestrictionType } from "../generated/prisma/client.js";
+import { GalleryEntryKind, GeneratorCategory, Prisma, PublicationState, RestrictionType } from "../generated/prisma/client.js";
 import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
@@ -14,15 +14,109 @@ adminRouter.get("/access", (_req, res) => {
   res.json({ authorized: true });
 });
 
-adminRouter.get("/review-queue", asyncRoute(async (_req, res) => {
-  const items = await db.submission.findMany({
-    where: { status: { in: ["PENDING", "REVIEWING"] } },
-    orderBy: { publishedAt: "asc" },
-    include: {
-      user: { select: { id: true, displayName: true, socialAccounts: { where: { provider: "X_MANUAL" }, take: 1 } } },
-    },
+const reviewQueueQuery = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(6).max(48).default(12),
+  sort: z.enum(["time", "votes"]).default("time"),
+  direction: z.enum(["asc", "desc"]).default("asc"),
+  search: z.string().trim().max(80).default(""),
+});
+
+adminRouter.get("/review-queue", asyncRoute(async (req, res) => {
+  const query = reviewQueueQuery.parse(req.query);
+  const where: Prisma.SubmissionWhereInput = {
+    status: { in: ["PENDING", "REVIEWING", "ACCEPTED"] },
+    ...(query.search ? {
+      OR: [
+        { title: { contains: query.search, mode: "insensitive" as const } },
+        { description: { contains: query.search, mode: "insensitive" as const } },
+        { user: { displayName: { contains: query.search, mode: "insensitive" as const } } },
+        { user: { socialAccounts: { some: { provider: "X_MANUAL", username: { contains: query.search, mode: "insensitive" as const } } } } },
+      ],
+    } : {}),
+  };
+  const orderBy = query.sort === "votes"
+    ? [{ upvoteCount: query.direction }, { publishedAt: "desc" as const }]
+    : [{ publishedAt: query.direction }, { id: query.direction }];
+  const [total, items] = await db.$transaction([
+    db.submission.count({ where }),
+    db.submission.findMany({
+      where,
+      skip: (query.page - 1) * query.limit,
+      take: query.limit,
+      orderBy,
+      include: {
+        user: { select: { id: true, displayName: true, socialAccounts: { where: { provider: "X_MANUAL" }, take: 1 } } },
+      },
+    }),
+  ]);
+  const pages = Math.max(1, Math.ceil(total / query.limit));
+  res.json({ items, pagination: { page: Math.min(query.page, pages), pages, total, limit: query.limit } });
+}));
+
+const acceptToGalleryBody = z.object({
+  categories: z.array(z.nativeEnum(GeneratorCategory)).max(8).default([]),
+  note: z.string().trim().min(2).max(1000),
+});
+
+adminRouter.post("/submissions/:id/accept-to-gallery", asyncRoute(async (req, res) => {
+  const body = acceptToGalleryBody.parse(req.body);
+  const submissionId = req.params.id as string;
+  const entry = await db.$transaction(async (tx) => {
+    const submission = await tx.submission.findUnique({ where: { id: submissionId } });
+    if (!submission) throw new ApiError(404, "SUBMISSION_NOT_FOUND", "That submission was not found.");
+    if (["GALLERY_ADDED", "WITHDRAWN", "REJECTED"].includes(submission.status)) {
+      throw new ApiError(409, "SUBMISSION_STATE_INVALID", `A ${submission.status.toLowerCase()} submission cannot be added.`);
+    }
+
+    const selectedCategories = submission.kind === "ONE_OF_ONE"
+      ? submission.categories
+      : [...new Set(body.categories)];
+    if (submission.kind === "TRAIT_EXTENSION") {
+      if (selectedCategories.length === 0) {
+        throw new ApiError(422, "GALLERY_TRAIT_REQUIRED", "Select at least one submitted trait.");
+      }
+      const invalid = selectedCategories.filter((category) => !submission.categories.includes(category));
+      if (invalid.length) {
+        throw new ApiError(422, "GALLERY_TRAIT_INVALID", "Only traits included in this submission can be accepted.", {
+          categories: invalid,
+        });
+      }
+    }
+
+    const created = await tx.galleryEntry.create({
+      data: {
+        submissionId: submission.id,
+        kind: submission.kind === "ONE_OF_ONE" ? "ONE_OF_ONE" : "TRAIT",
+        publicationState: "GALLERY_ONLY",
+        categories: selectedCategories,
+      },
+    });
+    await tx.submission.update({ where: { id: submission.id }, data: { status: "GALLERY_ADDED" } });
+    await tx.submissionStatusEvent.create({
+      data: {
+        submissionId: submission.id,
+        actorId: req.auth!.userId,
+        fromStatus: submission.status,
+        toStatus: "GALLERY_ADDED",
+        note: body.note,
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: {
+        actorId: req.auth!.userId,
+        action: "SUBMISSION_ACCEPTED_TO_GALLERY",
+        targetType: "GalleryEntry",
+        targetId: created.id,
+        before: { submissionStatus: submission.status, submittedCategories: submission.categories },
+        after: { submissionStatus: "GALLERY_ADDED", acceptedCategories: selectedCategories },
+        reason: body.note,
+        requestId: req.id,
+      },
+    });
+    return created;
   });
-  res.json({ items });
+  res.status(201).json({ entry });
 }));
 
 const abuseQuery = z.object({
@@ -224,6 +318,13 @@ adminRouter.post("/submissions/:id/promote", asyncRoute(async (req, res) => {
     if (submission.status !== "ACCEPTED") {
       throw new ApiError(409, "SUBMISSION_NOT_ACCEPTED", "Accept the submission before adding it to the gallery.");
     }
+    const selectedCategories = [...new Set(body.categories)];
+    const invalidCategories = selectedCategories.filter((category) => !submission.categories.includes(category));
+    if (invalidCategories.length) {
+      throw new ApiError(422, "GALLERY_TRAIT_INVALID", "Only traits included in this submission can be promoted.", {
+        categories: invalidCategories,
+      });
+    }
     if (body.feeShare) {
       const wallet = await tx.wallet.findFirst({ where: { id: body.feeShare.walletId, userId: submission.userId } });
       if (!wallet) throw new ApiError(422, "CREATOR_WALLET_INVALID", "The fee-share wallet must belong to the creator.");
@@ -234,7 +335,7 @@ adminRouter.post("/submissions/:id/promote", asyncRoute(async (req, res) => {
         submissionId: submission.id,
         kind: body.kind,
         publicationState: body.publicationState,
-        categories: [...new Set(body.categories)],
+        categories: selectedCategories,
         displayOrder: body.displayOrder,
         tokenChainId: body.onchain?.chainId,
         tokenContract: body.onchain?.contract.toLowerCase(),

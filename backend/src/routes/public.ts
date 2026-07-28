@@ -157,5 +157,25 @@ publicRouter.get("/gallery", asyncRoute(async (req, res) => {
       },
     },
   });
-  res.json({ items: entries });
+  const items = entries.map((entry) => {
+    if (entry.kind === "ONE_OF_ONE") {
+      return { ...entry, previewAssetUrl: entry.submission.previewAssetUrl };
+    }
+    const selected = new Set(entry.categories.map((category) => category.toLowerCase()));
+    const variants = Array.isArray(entry.submission.previewVariants)
+      ? entry.submission.previewVariants as Array<{ categories?: unknown; url?: unknown }>
+      : [];
+    const variant = variants.find((candidate) => {
+      if (!Array.isArray(candidate.categories) || typeof candidate.url !== "string") return false;
+      const categories = candidate.categories
+        .filter((category): category is string => typeof category === "string")
+        .map((category) => category.toLowerCase());
+      return categories.length === selected.size && categories.every((category) => selected.has(category));
+    });
+    return {
+      ...entry,
+      previewAssetUrl: typeof variant?.url === "string" ? variant.url : entry.submission.previewAssetUrl,
+    };
+  });
+  res.json({ items });
 }));

@@ -449,3 +449,48 @@
   hydration mismatch, and eagerly loads the first above-fold artwork to address the
   reported development warnings.
 - Frontend ESLint, 21 tests, and the production build passed.
+
+## 2026-07-28 — Unique X username claims
+
+- Added a debounced X username availability endpoint and live feedback in the account
+  modal. Invalid input is not queried; stale checks are aborted; transient check
+  failures do not prevent the server from performing the authoritative save check.
+- Account creation and username updates now reject an X username already linked to a
+  different Mask Born account. A nullable unique `SocialAccount.claimKey` stores the
+  normalized `x:<username>` claim, closing the concurrent-submit race at database
+  level while leaving Discord identity uniqueness independent.
+- Prisma Client was regenerated. Backend TypeScript, build, and 16 tests passed;
+  frontend ESLint, 21 tests, and production build passed.
+
+## 2026-07-28 — Partial trait gallery acceptance and mobile profile type
+
+- Added an atomic admin action that reviews and adds a submission to the gallery in
+  one transaction. For trait submissions, admins must select a non-empty subset of
+  categories actually included in the work; they can accept one, several, or all.
+  1/1 submissions are accepted as complete artwork.
+- The review panel now shows selectable trait chips and changes its preview to the
+  exact selected combination before acceptance. Previously accepted-but-not-promoted
+  submissions remain visible in the queue so they can complete this flow.
+- Public gallery responses derive their display image from the stored preview variant
+  matching the accepted categories. This displays only accepted layers on the base,
+  while 1/1 entries continue to display the complete submission preview.
+- Reduced profile X username typography and avatar dimensions at tablet/phone
+  breakpoints, added a zero-width-safe grid column, and enabled username wrapping.
+- Backend TypeScript, build, and 16 tests passed. Frontend ESLint, 21 tests, and the
+  production build passed.
+
+## 2026-07-28 — Scalable list navigation and admin queue ordering
+
+- Changed the protected review queue to bounded server-side pagination with a default
+  12 submissions per page, a total count, full-dataset search across artwork and
+  creator fields, and deterministic ordering by submission time or upvotes in either
+  ascending or descending direction.
+- Added a responsive reusable numbered paginator with first/last context, neighbouring
+  pages, ellipses, disabled boundary controls, active-page state, and smooth return to
+  the list when changing pages.
+- Community submissions now use cursor-based batches of 24 with an explicit animated
+  loading state and loaded-count feedback, avoiding the former hard stop at 60.
+  Accepted gallery work uses the numbered paginator at 12 entries per view. Profile
+  submissions remain unpaginated because account rules impose a small fixed maximum.
+- Backend TypeScript, build, and 16 tests passed. Frontend ESLint, 21 tests, and the
+  production build passed.

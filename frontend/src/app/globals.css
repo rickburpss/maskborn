@@ -3167,6 +3167,88 @@ body:has(.admin-shell) .site-footer {
   background: var(--bone);
 }
 
+.admin-actions .admin-direction {
+  flex: 0 0 40px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 28px;
+  padding: 14px;
+  border: 1px solid var(--line-dark);
+  background: var(--bone);
+}
+
+.pagination > button,
+.pagination span button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font-size: 9px;
+}
+
+.pagination span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pagination span button.active {
+  border-color: var(--ink);
+  background: var(--amber);
+  font-weight: 700;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.28;
+}
+
+.pagination i {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.load-more-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 38px;
+}
+
+.load-more-row span {
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 520px) {
+  .pagination {
+    gap: 2px;
+    padding-inline: 8px;
+  }
+
+  .pagination > button,
+  .pagination span button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .load-more-row {
+    align-items: stretch;
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
 .admin-actions button span {
   position: absolute;
   top: -5px;
@@ -3379,6 +3461,62 @@ body:has(.admin-shell) .site-footer {
   font-family: "Bebas Neue", sans-serif;
   font-size: 23px;
   font-weight: 400;
+}
+
+.gallery-trait-picker {
+  margin: 0 0 18px;
+  padding: 14px;
+  border: 1px solid var(--line-dark);
+}
+
+.gallery-trait-picker legend {
+  padding: 0 6px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.gallery-trait-picker > p {
+  margin: 0 0 11px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.gallery-trait-picker > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gallery-trait-picker label {
+  position: relative;
+}
+
+.gallery-trait-picker input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gallery-trait-picker label span {
+  display: block;
+  padding: 8px 11px;
+  border: 1px solid var(--line-dark);
+  cursor: pointer;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.gallery-trait-picker input:checked + span {
+  border-color: var(--ink);
+  background: var(--amber);
+  color: var(--ink);
+}
+
+.gallery-trait-picker input:focus-visible + span {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .review-detail textarea {
@@ -4017,6 +4155,15 @@ body:has(.admin-shell) .site-footer {
     grid-template-columns: 90px 1fr;
   }
 
+  .profile-card > div:nth-child(2) {
+    min-width: 0;
+  }
+
+  .profile-card h1 {
+    overflow-wrap: anywhere;
+    font-size: clamp(36px, 9vw, 48px);
+  }
+
   .profile-avatar {
     width: 90px;
     height: 90px;
@@ -4137,6 +4284,20 @@ body:has(.admin-shell) .site-footer {
 }
 
 @media (max-width: 520px) {
+  .profile-card {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  .profile-card h1 {
+    font-size: clamp(28px, 9vw, 38px);
+  }
+
   .profile-creations {
     grid-template-columns: 1fr;
   }

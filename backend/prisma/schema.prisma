@@ -120,6 +120,7 @@ model SocialAccount {
   provider           String
   providerAccountId  String
   username           String
+  claimKey           String?           @unique
   verificationState  VerificationState @default(UNVERIFIED)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt

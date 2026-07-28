@@ -52,11 +52,14 @@ export function errorHandler(error: unknown, req: Request, res: Response, _next:
     const target = JSON.stringify(prismaError.meta?.target ?? prismaError.meta?.constraint ?? "");
     if (prismaError.code === "P2002") {
       const accessoryName = target.includes("normalizedName");
+      const xUsername = target.includes("claimKey");
       res.status(409).json({
         error: {
-          code: accessoryName ? "ACCESSORY_NAME_TAKEN" : "DUPLICATE_RESOURCE",
+          code: accessoryName ? "ACCESSORY_NAME_TAKEN" : xUsername ? "X_USERNAME_TAKEN" : "DUPLICATE_RESOURCE",
           message: accessoryName
             ? "That accessory name was just taken. Choose another name and publish again."
+            : xUsername
+              ? "That X username is already linked to a Mask Born account."
             : "An identical record already exists.",
           details: { target: prismaError.meta?.target },
           requestId: req.id,

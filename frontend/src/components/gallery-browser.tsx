@@ -7,11 +7,13 @@ import { useMemo, useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { DotLoader } from "@/components/dot-loader";
 import { apiFetch } from "@/lib/api";
+import { Pagination } from "@/components/pagination";
 
 type GalleryEntry = {
   id: string;
   kind: "ONE_OF_ONE" | "TRAIT";
   categories: string[];
+  previewAssetUrl: string;
   submission: {
     title: string;
     slug: string;
@@ -32,6 +34,7 @@ export function GalleryBrowser() {
   const [filter, setFilter] = useState("All work");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("Newest");
+  const [page, setPage] = useState(1);
   const gallery = useQuery({
     queryKey: ["gallery"],
     queryFn: () => apiFetch<{ items: GalleryEntry[] }>("/gallery"),
@@ -58,21 +61,25 @@ export function GalleryBrowser() {
     return filtered;
   }, [filter, gallery.data, search, sort]);
 
+  const pageSize = 12;
+  const pages = Math.max(1, Math.ceil(entries.length / pageSize));
+  const visibleEntries = entries.slice((Math.min(page, pages) - 1) * pageSize, Math.min(page, pages) * pageSize);
+
   return (
     <section className="gallery-shell shell">
       <div className="gallery-filters" aria-label="Gallery categories">
         {filters.map((item) => (
-          <button key={item} className={filter === item ? "active" : ""} onClick={() => setFilter(item)}>{item}</button>
+          <button key={item} className={filter === item ? "active" : ""} onClick={() => { setFilter(item); setPage(1); }}>{item}</button>
         ))}
       </div>
       <div className="filter-row gallery-toolbar">
         <label className="filter-search">
           <Search size={15} />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search accepted artwork or creator" />
+          <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search accepted artwork or creator" />
         </label>
         <label className="select-wrap">
           <span className="sr-only">Sort accepted artwork</span>
-          <select value={sort} onChange={(event) => setSort(event.target.value)}>
+          <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(1); }}>
             <option>Newest</option>
             <option>Highest likes</option>
             <option>Highest score</option>
@@ -82,13 +89,13 @@ export function GalleryBrowser() {
         </label>
       </div>
       <div className="gallery-grid">
-        {entries.map((entry, index) => {
+        {visibleEntries.map((entry, index) => {
           const username = entry.submission.user.socialAccounts[0]?.username;
           const creator = username ? `@${username}` : entry.submission.user.displayName ?? "Mask Born member";
           return (
             <article className={`gallery-item gallery-item-${(index % 6) + 1}`} key={entry.id}>
               <Link href={`/art/${entry.submission.slug}`} className="gallery-art-wrap">
-                  <PixelArtwork source={entry.submission.previewAssetUrl} label={entry.submission.title} />
+                  <PixelArtwork source={entry.previewAssetUrl} label={entry.submission.title} eager={index === 0} />
                   <span>{String(index + 1).padStart(2, "0")}</span>
               </Link>
               <div className="gallery-item-meta">
@@ -103,6 +110,14 @@ export function GalleryBrowser() {
           );
         })}
       </div>
+      <Pagination
+        page={Math.min(page, pages)}
+        pages={pages}
+        onPageChange={(nextPage) => {
+          setPage(nextPage);
+          document.querySelector(".gallery-shell")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+      />
       {gallery.isLoading && <DotLoader label="Loading accepted work" />}
       {gallery.isError && <div className="empty-state">The gallery could not be loaded. Try again shortly.</div>}
       {!gallery.isLoading && !gallery.isError && entries.length === 0 && (

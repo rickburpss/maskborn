@@ -3,6 +3,7 @@ import { Router, type Response } from "express";
 import { z } from "zod";
 import { adminDiscordIds, config } from "../config.js";
 import { db } from "../db.js";
+import { ApiError } from "../errors.js";
 import { requireAuth } from "../middleware/auth.js";
 import { createOAuthState, readOAuthState } from "../oauth-state.js";
 import { asyncRoute } from "../utils.js";
@@ -34,9 +35,33 @@ const usernameBody = z.object({
     .pipe(z.string().regex(/^[a-z0-9_]{1,15}$/, "Enter a valid X username.")),
 });
 
+authRouter.get("/auth/username/availability", asyncRoute(async (req, res) => {
+  const { username } = usernameBody.parse(req.query);
+  const claimed = await db.socialAccount.findFirst({
+    where: {
+      provider: "X_MANUAL",
+      username: { equals: username, mode: "insensitive" },
+      ...(req.auth ? { userId: { not: req.auth.userId } } : {}),
+    },
+    select: { id: true },
+  });
+  res.json({ username, available: !claimed });
+}));
+
 authRouter.post("/auth/username", asyncRoute(async (req, res) => {
   const { username } = usernameBody.parse(req.body);
   const user = await db.$transaction(async (tx) => {
+    const claimed = await tx.socialAccount.findFirst({
+      where: {
+        provider: "X_MANUAL",
+        username: { equals: username, mode: "insensitive" },
+        ...(req.auth ? { userId: { not: req.auth.userId } } : {}),
+      },
+      select: { id: true },
+    });
+    if (claimed) {
+      throw new ApiError(409, "X_USERNAME_TAKEN", "That X username is already linked to a Mask Born account.");
+    }
     if (req.auth) {
       const existing = await tx.socialAccount.findFirst({
         where: { userId: req.auth.userId, provider: "X_MANUAL" },
@@ -44,7 +69,7 @@ authRouter.post("/auth/username", asyncRoute(async (req, res) => {
       if (existing) {
         await tx.socialAccount.update({
           where: { id: existing.id },
-          data: { username },
+          data: { username, claimKey: `x:${username}` },
         });
       } else {
         await tx.socialAccount.create({
@@ -53,6 +78,7 @@ authRouter.post("/auth/username", asyncRoute(async (req, res) => {
             provider: "X_MANUAL",
             providerAccountId: `manual:${randomUUID()}`,
             username,
+            claimKey: `x:${username}`,
             verificationState: "UNVERIFIED",
           },
         });
@@ -71,6 +97,7 @@ authRouter.post("/auth/username", asyncRoute(async (req, res) => {
             provider: "X_MANUAL",
             providerAccountId: `manual:${randomUUID()}`,
             username,
+            claimKey: `x:${username}`,
             verificationState: "UNVERIFIED",
           },
         },

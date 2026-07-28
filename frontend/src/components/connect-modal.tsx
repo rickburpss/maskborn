@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, Copy, LogIn, LogOut, UserPlus, X } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { apiFetch } from "@/lib/api";
@@ -36,11 +36,34 @@ export function ConnectModal({
   const [usernameInput, setUsernameInput] = useState(twitter ?? "");
   const [walletInput, setWalletInput] = useState(wallet ?? "");
   const [error, setError] = useState("");
+  const [usernameAvailability, setUsernameAvailability] = useState<"idle" | "checking" | "available" | "taken" | "error">("idle");
   const [copied, setCopied] = useState(false);
   const [creatingAccount, setCreatingAccount] = useState(startCreatingAccount);
   const isSignedIn = Boolean(session.data?.user?.id);
   const showAccountChoice = !session.isLoading && !isSignedIn && !creatingAccount;
   const showAccountFlow = isSignedIn || creatingAccount;
+
+  useEffect(() => {
+    const normalized = usernameInput.trim().replace(/^@/, "").toLowerCase();
+    if (!usernamePattern.test(normalized)) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setUsernameAvailability("checking");
+      try {
+        const result = await apiFetch<{ available: boolean }>(
+          `/auth/username/availability?username=${encodeURIComponent(normalized)}`,
+          { signal: controller.signal },
+        );
+        setUsernameAvailability(result.available ? "available" : "taken");
+      } catch (requestError) {
+        if ((requestError as Error).name !== "AbortError") setUsernameAvailability("error");
+      }
+    }, 350);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [usernameInput]);
 
   const closeModal = () => {
     setCreatingAccount(false);
@@ -54,6 +77,10 @@ export function ConnectModal({
       setError("Enter a valid X username.");
       return;
     }
+    if (usernameAvailability === "taken") {
+      setError("That X username is already linked to a Mask Born account.");
+      return;
+    }
     try {
       const normalized = value.replace(/^@/, "").toLowerCase();
       await apiFetch("/auth/username", {
@@ -62,6 +89,7 @@ export function ConnectModal({
       });
       local.connectTwitter(`@${normalized}`);
       await queryClient.invalidateQueries({ queryKey: ["session"] });
+      setUsernameAvailability("available");
       setError("");
     } catch (requestError) {
       setError((requestError as Error).message);
@@ -155,13 +183,25 @@ export function ConnectModal({
                     <div className="input-action">
                       <input
                         value={usernameInput}
-                        onChange={(event) => setUsernameInput(event.target.value)}
+                        onChange={(event) => {
+                          setUsernameInput(event.target.value);
+                          setUsernameAvailability("idle");
+                          setError("");
+                        }}
                         placeholder="@username"
                         autoComplete="username"
                         aria-label="X username"
                       />
-                      <button aria-label="Save X username"><ArrowRight size={17} /></button>
+                      <button
+                        aria-label="Save X username"
+                        disabled={usernameAvailability === "checking" || usernameAvailability === "taken"}
+                      ><ArrowRight size={17} /></button>
                     </div>
+                    {usernameAvailability === "checking" && <p className="field-hint">Checking username…</p>}
+                    {usernameAvailability === "available" && <p className="field-hint">Username is available.</p>}
+                    {usernameAvailability === "taken" && <p className="field-error">That username already has an account.</p>}
+                    {usernameAvailability === "error" && <p className="field-hint">Could not check right now. Saving will verify it again.</p>}
+                    {error && <p className="field-error">{error}</p>}
                   </form>
                 )}
               </div>

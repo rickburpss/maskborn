@@ -109,6 +109,7 @@ export const SocialAccountScalarFieldEnum = {
   provider: 'provider',
   providerAccountId: 'providerAccountId',
   username: 'username',
+  claimKey: 'claimKey',
   verificationState: 'verificationState',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
