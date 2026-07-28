@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { DotLoader } from "@/components/dot-loader";
 
-function ArtworkImage({ src, label }: { src: string; label: string }) {
+function ArtworkImage({ src, label, eager }: { src: string; label: string; eager: boolean }) {
   const [loading, setLoading] = useState(true);
 
   return (
@@ -15,6 +15,7 @@ function ArtworkImage({ src, label }: { src: string; label: string }) {
         alt={label}
         fill
         unoptimized
+        loading={eager ? "eager" : "lazy"}
         sizes="(max-width: 768px) 80vw, 32vw"
         className={loading ? "loading" : "loaded"}
         onLoad={() => setLoading(false)}
@@ -29,18 +30,20 @@ export function PixelArtwork({
   className = "",
   label = "Maskborn artwork",
   source,
+  eager = false,
 }: {
   variant?: number;
   className?: string;
   label?: string;
   source?: string;
+  eager?: boolean;
 }) {
   const fixture = String((variant % 16) + 1).padStart(4, "0");
   const src = source ?? `/collection/fixtures/token-${fixture}.svg`;
 
   return (
     <div className={`pixel-art ${className}`}>
-      <ArtworkImage key={src} src={src} label={label} />
+      <ArtworkImage key={src} src={src} label={label} eager={eager} />
     </div>
   );
 }

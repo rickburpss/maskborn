@@ -105,6 +105,7 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
         <PixelArtwork
           variant={artwork.variant}
           source={previewSource}
+          eager={index === 0}
           label={`${artwork.title}${selectedVariant ? ` — ${genericPreviewLabel(selectedVariant, artwork.categories ?? [])}` : ""}`}
         />
         <span className="art-type">{artwork.type}</span>

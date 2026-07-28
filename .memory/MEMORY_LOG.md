@@ -433,3 +433,19 @@
   action that returns home and opens the modal directly in its creation flow.
 - Backend TypeScript, build, and 16 tests passed. Frontend ESLint, 21 tests, and the
   production build passed; the route manifest includes dynamic `/api/[...path]`.
+
+## 2026-07-28 — Same-origin session fetching
+
+- Removed `NEXT_PUBLIC_API_URL` from browser API routing. All client-side session,
+  profile, mutation, health, and Discord-start requests now use the current website's
+  `/api` origin, while only the server-side proxy reads `BACKEND_URL`. This prevents a
+  Vercel-owned login cookie from being followed by an anonymous request sent directly
+  to Render.
+- Session queries now refetch whenever their consumers mount instead of treating a
+  pre-OAuth anonymous result as fresh. Local frontend configuration now uses
+  `BACKEND_URL=http://localhost:4000`; production and Discord docs no longer instruct
+  setting a public backend API URL.
+- Added Next's scroll-behavior marker, suppressed the known rewritten-path active-link
+  hydration mismatch, and eagerly loads the first above-fold artwork to address the
+  reported development warnings.
+- Frontend ESLint, 21 tests, and the production build passed.

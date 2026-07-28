@@ -24,6 +24,7 @@ export function useCurrentUser() {
       }
     },
     retry: false,
-    staleTime: 60_000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }

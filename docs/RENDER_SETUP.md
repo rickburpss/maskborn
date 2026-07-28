@@ -35,14 +35,13 @@ Set:
 
 ```env
 BACKEND_URL=https://YOUR-BACKEND.onrender.com
-NEXT_PUBLIC_API_URL=https://YOUR-FRONTEND.onrender.com
 NEXT_PUBLIC_SITE_URL=https://YOUR-FRONTEND.onrender.com
 NEXT_PUBLIC_X_CAMPAIGN_POST_URL=https://x.com/YOUR_ACCOUNT/status/YOUR_POST_ID
 ```
 
 Do not put the Discord secret, database URL, R2 secret, or peppers in the frontend.
-After changing any URL, redeploy both services because Next.js reads public variables
-at build time.
+All browser API requests use the website's same-origin `/api` route. Do not set
+`NEXT_PUBLIC_API_URL` to Render; doing so bypasses the cookie-preserving proxy.
 
 The branded Discord wake page prevents users from being sent directly to Render's
 cold-start screen. It cannot eliminate the free backend's wake time; an always-on paid

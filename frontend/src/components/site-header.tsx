@@ -106,7 +106,7 @@ export function SiteHeader() {
                     animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                   >
-                    <Link className={pathname === item.href ? "active" : ""} href={item.href}>
+                    <Link suppressHydrationWarning className={pathname === item.href ? "active" : ""} href={item.href}>
                       {item.label}
                     </Link>
                   </motion.div>

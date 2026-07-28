@@ -48,10 +48,10 @@ frontend variables or commit it.
 
 ## Frontend environment
 
-`frontend/.env.local` should point at the backend:
+`frontend/.env.local` should give the server-side proxy its backend target:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:4000
+BACKEND_URL=http://localhost:4000
 NEXT_PUBLIC_X_CAMPAIGN_POST_URL=https://x.com/YOUR_ACCOUNT/status/YOUR_POST_ID
 ```
 
@@ -59,7 +59,6 @@ On Render, point browser requests at the website and let the server-side rewrite
 the backend:
 
 ```env
-NEXT_PUBLIC_API_URL=https://YOUR-WEBSITE-DOMAIN
 NEXT_PUBLIC_SITE_URL=https://YOUR-WEBSITE-DOMAIN
 BACKEND_URL=https://YOUR-BACKEND-DOMAIN
 ```

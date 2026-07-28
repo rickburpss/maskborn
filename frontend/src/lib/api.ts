@@ -1,4 +1,6 @@
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+// Browser requests must stay on the website origin so Vercel owns the session cookie.
+// The server-only /api proxy forwards them to BACKEND_URL.
+export const API_URL = "";
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}/api${path}`, {

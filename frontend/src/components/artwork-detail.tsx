@@ -68,6 +68,7 @@ export function ArtworkDetail({ slug }: { slug: string }) {
         <div className="detail-art">
           <PixelArtwork
             source={previewSource}
+            eager
             label={`${artwork.title}${selectedVariant ? ` — ${selectedVariant.label}` : ""}`}
           />
           <span>32 × 32 / nearest-neighbour</span>
