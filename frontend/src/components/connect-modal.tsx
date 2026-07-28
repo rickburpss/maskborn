@@ -228,7 +228,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
               </div>
             )}
             {session.data?.user?.role === "ADMIN" && showAccountFlow && (
-              <Link className="admin-account-link" href="/admin" onClick={closeModal}>Open admin control room <ArrowRight size={14} /></Link>
+              <Link className="admin-account-link" href="/mboadmin" onClick={closeModal}>Open admin control room <ArrowRight size={14} /></Link>
             )}
             {showAccountFlow && <p className="fine-print">Discord verification is required for every action. The pasted X username remains unverified attribution.</p>}
           </motion.section>

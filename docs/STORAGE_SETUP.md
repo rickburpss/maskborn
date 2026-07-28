@@ -70,7 +70,7 @@ creator, voting counters, and review state. The feed explicitly excludes source 
 Admins can retrieve exact source data with:
 
 ```text
-GET /api/admin/submissions/{submissionId}/source
+GET /api/mboadmin/submissions/{submissionId}/source
 ```
 
 ## Export an accepted submission

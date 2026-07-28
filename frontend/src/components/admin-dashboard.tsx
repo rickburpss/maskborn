@@ -25,8 +25,8 @@ export function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("Newest");
   const queue = useQuery({
-    queryKey: ["admin", "review-queue"],
-    queryFn: () => apiFetch<{ items: ReviewItem[] }>("/admin/review-queue"),
+    queryKey: ["mboadmin", "review-queue"],
+    queryFn: () => apiFetch<{ items: ReviewItem[] }>("/mboadmin/review-queue"),
     retry: false,
   });
   const allItems = queue.data?.items;
@@ -47,14 +47,14 @@ export function AdminDashboard() {
   }, [allItems, search, sort]);
   const selected = items.find((item) => item.id === selectedId) ?? items[0];
   const review = useMutation({
-    mutationFn: (decision: "ACCEPTED" | "REJECTED") => apiFetch(`/admin/submissions/${selected!.id}/review`, {
+    mutationFn: (decision: "ACCEPTED" | "REJECTED") => apiFetch(`/mboadmin/submissions/${selected!.id}/review`, {
       method: "PUT",
       body: JSON.stringify({ decision, note }),
     }),
     onSuccess: async () => {
       setNote("");
       setSelectedId(null);
-      await queryClient.invalidateQueries({ queryKey: ["admin", "review-queue"] });
+      await queryClient.invalidateQueries({ queryKey: ["mboadmin", "review-queue"] });
     },
   });
 

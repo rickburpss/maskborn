@@ -43,6 +43,16 @@ describe("API shell", () => {
     expect(response.status).toBe(401);
     expect(response.body.error.code).toBe("AUTH_REQUIRED");
   });
+
+  it("protects the renamed admin namespace and removes the old route", async () => {
+    const protectedResponse = await request(app).get("/api/mboadmin/access");
+    expect(protectedResponse.status).toBe(401);
+    expect(protectedResponse.body.error.code).toBe("AUTH_REQUIRED");
+
+    const oldRoute = await request(app).get("/api/admin/review-queue");
+    expect(oldRoute.status).toBe(404);
+    expect(oldRoute.body.error.code).toBe("ROUTE_NOT_FOUND");
+  });
 });
 
 describe("X post URLs", () => {

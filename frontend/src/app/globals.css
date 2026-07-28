@@ -2923,6 +2923,40 @@ body:has(.admin-shell) .site-footer {
   display: none;
 }
 
+.admin-access-gate {
+  display: grid;
+  min-height: calc(100vh - 160px);
+  padding: 24px;
+  background: var(--bone);
+  place-items: center;
+}
+
+.admin-access-gate > div {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.admin-access-gate span {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--amber);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 22px;
+}
+
+.admin-access-gate p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .admin-shell {
   display: grid;
   min-height: 100vh;

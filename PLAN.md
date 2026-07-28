@@ -129,7 +129,7 @@ assets in this repository before build.
 
 ### Admin
 
-- `/admin`: queue counts, community review, gallery promotion, campaign settings,
+- `/mboadmin`: queue counts, community review, gallery promotion, campaign settings,
   submission limits, spam restrictions, trait management, payout ledger, and audit log.
 - Admin authorization is a server role check. Hiding the route in the client is not
   considered access control.
@@ -295,8 +295,8 @@ There are no X API credentials or paid X API calls in the website flow.
 - `/api/votes`
 - `/api/drafts`
 - `/api/profile`
-- `/api/admin/reviews`, `/api/admin/gallery`, `/api/admin/restrictions`,
-  `/api/admin/traits`, `/api/admin/payouts`, `/api/admin/settings`
+- `/api/mboadmin/reviews`, `/api/mboadmin/gallery`, `/api/mboadmin/restrictions`,
+  `/api/mboadmin/traits`, `/api/mboadmin/payouts`, `/api/mboadmin/settings`
 
 All mutation responses use a stable error shape with a machine code, human message,
 field errors where relevant, and a request ID.

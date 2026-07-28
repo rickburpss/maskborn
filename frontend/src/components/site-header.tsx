@@ -36,7 +36,7 @@ export function SiteHeader() {
     ? `@${xAccount.username}`
     : localTwitter;
   const visibleNavItems = session.data?.user?.role === "ADMIN"
-    ? [...navItems, { href: "/admin", label: "Admin", primary: false }]
+    ? [...navItems, { href: "/mboadmin", label: "Admin", primary: false }]
     : navItems;
 
   useMotionValueEvent(scrollY, "change", (value) => setCompact(value > 90));

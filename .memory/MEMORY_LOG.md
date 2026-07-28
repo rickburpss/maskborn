@@ -349,3 +349,21 @@
   normalization, hidden layers, and trusted preview generation.
 - Prisma schema diff against Neon was empty. Backend TypeScript, 11 tests, and build;
   frontend TypeScript, ESLint, 20 tests, and production build all passed.
+
+## 2026-07-28 — Protected `/mboadmin` control room
+
+- Replaced the frontend `/admin` page with `/mboadmin`; the old route is absent and
+  returns the normal Next.js not-found page. Updated the admin-only header and account
+  modal links.
+- Added a client authorization gate that calls a fresh protected access endpoint
+  before lazy-loading or rendering the dashboard. Unauthorized sessions are returned
+  to the home page, while temporary backend failures reveal no admin content.
+- Renamed the backend namespace from `/api/admin/*` to `/api/mboadmin/*`. Every route,
+  including `/access`, remains behind verified-Discord and `ADMIN` role middleware.
+- Marked the control-room page `noindex`, `nofollow`, and `nocache`, and updated admin,
+  storage, and planning documentation.
+- Added coverage proving the new access endpoint rejects unauthenticated requests and
+  the old API namespace returns 404.
+- Backend TypeScript, 12 tests, and production build; frontend TypeScript, ESLint, 20
+  tests, and production build passed. The production route manifest contains
+  `/mboadmin` and no `/admin` route.

@@ -1,7 +1,8 @@
 # Admin access
 
-The admin page is `/admin`. It appears in the navigation and Connect modal only for an
-account whose database role is `ADMIN`.
+The admin page is `/mboadmin`. It appears in the navigation and Connect modal only for
+an account whose database role is `ADMIN`. The page performs a fresh protected access
+check before loading any dashboard code or review data. `/admin` is not a route.
 
 Use a Discord ID allowlist so the owner account receives that role safely:
 
@@ -19,3 +20,6 @@ updates the account to `ADMIN`, and the Admin link then appears in the expanded 
 navigation, mobile menu, and account modal.
 
 Never use a username or display name here. Discord user IDs are stable; names are not.
+
+All admin API routes use `/api/mboadmin/*` and require both a verified Discord account
+and the backend `ADMIN` role. Knowing or typing the URL does not grant access.

@@ -10,6 +10,10 @@ import { asyncRoute } from "../utils.js";
 export const adminRouter = Router();
 adminRouter.use(requireVerifiedDiscord, requireAdmin);
 
+adminRouter.get("/access", (_req, res) => {
+  res.json({ authorized: true });
+});
+
 adminRouter.get("/review-queue", asyncRoute(async (_req, res) => {
   const items = await db.submission.findMany({
     where: { status: { in: ["PENDING", "REVIEWING"] } },

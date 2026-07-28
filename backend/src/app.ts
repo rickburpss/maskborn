@@ -39,7 +39,7 @@ app.use("/api", applicationsRouter);
 app.use("/api", draftsRouter);
 app.use("/api", submissionsRouter);
 app.use("/api", votesRouter);
-app.use("/api/admin", adminRouter);
+app.use("/api/mboadmin", adminRouter);
 
 app.use(notFound);
 app.use(errorHandler);
