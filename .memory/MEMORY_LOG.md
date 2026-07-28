@@ -404,3 +404,15 @@
   actions. The existing global rate limiter and client mutation locks remain in place.
 - Backend TypeScript and 12 tests passed. Frontend ESLint, production build, and 21
   tests passed.
+
+## 2026-07-28 — Proxy-safe Discord OAuth state
+
+- Replaced Discord OAuth's separate state cookie with a short-lived state value signed
+  using HMAC-SHA256 and the server-only signal pepper. This preserves CSRF protection
+  while avoiding `invalid-state` failures when Vercel proxies OAuth requests to Render
+  and the temporary backend cookie does not survive the round trip.
+- State validation rejects malformed, tampered, differently signed, future-dated, and
+  expired values using constant-time signature comparison. Legacy state cookies are
+  still cleared after a successful callback.
+- Added focused state security tests. Backend TypeScript, build, and 14 tests passed;
+  frontend ESLint and production build passed.

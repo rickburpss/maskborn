@@ -4,6 +4,7 @@ import { z } from "zod";
 import { adminDiscordIds, config } from "../config.js";
 import { db } from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
+import { createOAuthState, validateOAuthState } from "../oauth-state.js";
 import { asyncRoute } from "../utils.js";
 
 export const authRouter = Router();
@@ -103,12 +104,7 @@ authRouter.get("/auth/discord/start", asyncRoute(async (_req, res) => {
     res.redirect(discordErrorUrl("not-configured"));
     return;
   }
-  const state = randomBytes(24).toString("base64url");
-  res.cookie("mbo_discord_state", state, {
-    httpOnly: true,
-    ...discordStateCookie,
-    maxAge: 10 * 60 * 1000,
-  });
+  const state = createOAuthState(config.SIGNAL_PEPPER);
   const params = new URLSearchParams({
     response_type: "code",
     client_id: config.DISCORD_CLIENT_ID,
@@ -126,7 +122,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
   }
   const code = typeof req.query.code === "string" ? req.query.code : "";
   const state = typeof req.query.state === "string" ? req.query.state : "";
-  if (!code || !state || state !== req.cookies?.mbo_discord_state) {
+  if (!code || !validateOAuthState(state, config.SIGNAL_PEPPER)) {
     res.redirect(discordErrorUrl("invalid-state"));
     return;
   }
