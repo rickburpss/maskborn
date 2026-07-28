@@ -326,3 +326,26 @@
 - Painting or erasing pixels no longer resets the label to “checking name” or sends
   repeated availability requests to the API.
 - Frontend TypeScript, ESLint, and all 18 tests passed.
+
+## 2026-07-28 — Draw, publish, and voting edge-case hardening
+
+- No-op paint/erase operations and empty strokes no longer update timestamps, trigger
+  autosaves, or add useless undo entries. Coordinates are boundary-checked, strokes
+  undo as one action, layer IDs use UUIDs, and malformed persisted layers recover to a
+  valid active layer with sanitized pixels.
+- Empty unused layers no longer falsely consume an already-used trait slot. The client
+  catches multiple drawn accessories in one category, reports name-check failures,
+  and lets descriptions exceed 50 words visibly so the exact excess can be corrected
+  before publishing.
+- Submission previews are reconstructed server-side from validated pixel data and the
+  trusted base SVG. A supplied SVG that differs from those layers is rejected instead
+  of being stored, closing script/markup injection and preview/source mismatch paths.
+- Extended the publish transaction timeout for R2 variance and added a specific
+  `DATABASE_SCHEMA_OUTDATED` response for Prisma `P2021`.
+- Serialized vote mutations per card/detail view to prevent rapid-click response
+  races. Multi-trait pickers stay open until “Done,” allow independent trait votes,
+  and tolerate an older API response with no `viewerVotes` array during deployment.
+- Added regression tests for full-stroke history, invalid/no-op cells, Unicode name
+  normalization, hidden layers, and trusted preview generation.
+- Prisma schema diff against Neon was empty. Backend TypeScript, 11 tests, and build;
+  frontend TypeScript, ESLint, 20 tests, and production build all passed.

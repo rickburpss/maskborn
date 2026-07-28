@@ -1,6 +1,12 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
-import { canonicalizePixelData, createTraitPreviewVariants, sourcePixelDataSchema } from "../src/submission-art.js";
+import {
+  canonicalizePixelData,
+  createSubmissionPreview,
+  createTraitPreviewVariants,
+  normalizeAccessoryName,
+  sourcePixelDataSchema,
+} from "../src/submission-art.js";
 
 process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/maskborn";
 process.env.DATABASE_URL_UNPOOLED = process.env.DATABASE_URL;
@@ -75,6 +81,11 @@ describe("transaction retries", () => {
 });
 
 describe("submission artwork canonicalization", () => {
+  it("normalizes accessory names consistently across case, spacing, and Unicode forms", () => {
+    expect(normalizeAccessoryName("  BONE   Crown ")).toBe("bone crown");
+    expect(normalizeAccessoryName("Ａｍｂｅｒ")).toBe("amber");
+  });
+
   it("keeps visible pixels, resolves later-layer overlaps, and sorts coordinates", () => {
     const source = sourcePixelDataSchema.parse({
       schemaVersion: 2,
@@ -107,5 +118,22 @@ describe("submission artwork canonicalization", () => {
     const all = variants[2]!.svg;
     expect(all.indexOf('x="1"')).toBeLessThan(all.indexOf("maskborn-base"));
     expect(all.indexOf("maskborn-base")).toBeLessThan(all.indexOf('x="4"'));
+  });
+
+  it("builds the stored preview only from validated pixels and the trusted base", () => {
+    const source = sourcePixelDataSchema.parse({
+      schemaVersion: 2,
+      startBlank: false,
+      layers: [
+        { id: "background", name: "Amber Field", kind: "Background", visible: true, pixels: [{ x: 1, y: 1, color: "#F2B441" }] },
+        { id: "hidden", name: "Hidden Eye", kind: "Eyes", visible: false, pixels: [{ x: 3, y: 3, color: "#FFFFFF" }] },
+        { id: "hat", name: "Bone Crown", kind: "Hats", visible: true, pixels: [{ x: 4, y: 2, color: "#EDEAE2" }] },
+      ],
+    });
+    const preview = createSubmissionPreview(source, '<g id="trusted-base"/>', true);
+    expect(preview).toContain('<g id="trusted-base"/>');
+    expect(preview).toContain('x="1" y="1"');
+    expect(preview).toContain('x="4" y="2"');
+    expect(preview).not.toContain('x="3" y="3"');
   });
 });

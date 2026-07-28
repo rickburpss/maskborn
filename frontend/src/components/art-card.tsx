@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, Check, Share2, ThumbsDown, ThumbsUp } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { apiFetch } from "@/lib/api";
@@ -17,6 +17,8 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
   const [voteIntent, setVoteIntent] = useState<Exclude<VoteValue, null> | null>(null);
   const [counts, setCounts] = useState({ up: artwork.upvotes, down: artwork.downvotes });
   const [voteError, setVoteError] = useState("");
+  const [votePending, setVotePending] = useState(false);
+  const voteInFlight = useRef(false);
   const [shared, setShared] = useState(false);
   const [activePreview, setActivePreview] = useState<string | null>(null);
   const session = useCurrentUser();
@@ -32,6 +34,7 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
 
   const voteCategories = artwork.categories ?? [];
   const applyVote = async (next: Exclude<VoteValue, null>, selectedCategory?: string) => {
+    if (voteInFlight.current) return;
     if (!discordVerified) {
       window.dispatchEvent(new CustomEvent("maskborn:connect"));
       return;
@@ -46,13 +49,15 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
     const previous = votes[voteKey] ?? null;
     const previousCounts = counts;
     const desired = previous === next ? null : next;
+    voteInFlight.current = true;
+    setVotePending(true);
     setVoteError("");
     setVotes((current) => ({ ...current, [voteKey]: desired }));
     setCounts((current) => ({
       up: current.up + (previous === "up" ? -1 : 0) + (desired === "up" ? 1 : 0),
       down: current.down + (previous === "down" ? -1 : 0) + (desired === "down" ? 1 : 0),
     }));
-    setVoteIntent(null);
+    if (voteCategories.length <= 1) setVoteIntent(null);
     try {
       const result = await apiFetch<{
         vote: "UP" | "DOWN" | null;
@@ -74,6 +79,9 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
       if (["AUTH_REQUIRED", "DISCORD_REQUIRED"].includes((error as Error & { code?: string }).code ?? "")) {
         window.dispatchEvent(new CustomEvent("maskborn:connect"));
       }
+    } finally {
+      voteInFlight.current = false;
+      setVotePending(false);
     }
   };
 
@@ -143,6 +151,7 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
                       type="button"
                       key={category}
                       className={votes[category] ? `voted ${votes[category] === "down" ? "down" : ""}` : ""}
+                      disabled={votePending}
                       onClick={() => applyVote(voteIntent, category)}
                     >
                       {category.charAt(0) + category.slice(1).toLowerCase()}
@@ -151,7 +160,7 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
                   );
                 })}
               </div>
-              <button type="button" className="trait-vote-cancel" onClick={() => setVoteIntent(null)}>Cancel</button>
+              <button type="button" className="trait-vote-cancel" onClick={() => setVoteIntent(null)}>Done</button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -163,10 +172,10 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
         )}
         {voteError && <p className="field-error vote-error">{voteError}</p>}
         <div className="vote-row">
-          <button className={Object.values(votes).includes("up") ? "voted" : ""} onClick={() => applyVote("up")} aria-label={`Upvote ${artwork.title}`}>
+          <button disabled={votePending} className={Object.values(votes).includes("up") ? "voted" : ""} onClick={() => applyVote("up")} aria-label={`Upvote ${artwork.title}`}>
             <ThumbsUp size={15} fill={Object.values(votes).includes("up") ? "currentColor" : "none"} /> {upvotes}
           </button>
-          <button className={Object.values(votes).includes("down") ? "voted down" : ""} onClick={() => applyVote("down")} aria-label={`Downvote ${artwork.title}`}>
+          <button disabled={votePending} className={Object.values(votes).includes("down") ? "voted down" : ""} onClick={() => applyVote("down")} aria-label={`Downvote ${artwork.title}`}>
             <ThumbsDown size={15} fill={Object.values(votes).includes("down") ? "currentColor" : "none"} /> {downvotes}
           </button>
           <button className="share-button" onClick={share} aria-label={`Share ${artwork.title}`}>

@@ -82,6 +82,53 @@ const initial = {
 };
 
 const touched = () => new Date().toISOString();
+const accessoryKindSet = new Set<AccessoryKind>(["Background", "Eyes", "Hats", "Special"]);
+
+function restoreLayers(value: unknown, fallback: DraftLayer[]) {
+  if (!Array.isArray(value)) return fallback;
+  const usedIds = new Set<string>();
+  const restored = value.flatMap((candidate, index): DraftLayer[] => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const layer = candidate as Record<string, unknown>;
+    if (typeof layer.kind !== "string" || !accessoryKindSet.has(layer.kind as AccessoryKind)) return [];
+    const kind = layer.kind as AccessoryKind;
+    const rawId = typeof layer.id === "string" && layer.id.trim() ? layer.id : `${kind.toLowerCase()}-${index + 1}`;
+    const id = usedIds.has(rawId) ? `${rawId}-${index + 1}` : rawId;
+    usedIds.add(id);
+    const coordinates = new Map<string, DraftPixel>();
+    if (Array.isArray(layer.pixels)) {
+      for (const candidatePixel of layer.pixels.slice(0, 1024)) {
+        if (!candidatePixel || typeof candidatePixel !== "object") continue;
+        const pixel = candidatePixel as Record<string, unknown>;
+        if (
+          Number.isInteger(pixel.x)
+          && Number.isInteger(pixel.y)
+          && Number(pixel.x) >= 0
+          && Number(pixel.x) < 32
+          && Number(pixel.y) >= 0
+          && Number(pixel.y) < 32
+          && typeof pixel.color === "string"
+          && /^#[0-9a-f]{6}$/i.test(pixel.color)
+        ) {
+          const x = Number(pixel.x);
+          const y = Number(pixel.y);
+          coordinates.set(`${x},${y}`, { x, y, color: pixel.color.toUpperCase() });
+        }
+      }
+    }
+    return [{
+      id,
+      kind,
+      name: typeof layer.name === "string" && layer.name.trim()
+        ? layer.name.trim()
+        : `${singularKind(kind)} ${index + 1}`,
+      visible: typeof layer.visible === "boolean" ? layer.visible : true,
+      pixels: [...coordinates.values()],
+    }];
+  });
+  return restored.length > 0 ? restored : fallback;
+}
+
 const snapshot = (state: Pick<DraftState, "layers" | "activeLayerId">): LayerSnapshot => ({
   layers: state.layers,
   activeLayerId: state.activeLayerId,
@@ -99,19 +146,24 @@ export const useDraftStore = create<DraftState>()(
       setDescription: (description) => set({ description, updatedAt: touched() }),
       setPostType: (postType) => set({
         postType,
-        startBlank: postType === "ACCESSORY" ? false : false,
+        startBlank: false,
         updatedAt: touched(),
       }),
       setStartBlank: (startBlank) => set({ startBlank, updatedAt: touched() }),
       setColor: (color) => set({ color }),
-      setActiveLayer: (activeLayerId) => set({ activeLayerId }),
-      renameLayer: (id, name) => set((state) => ({
-        ...addHistory(state),
-        layers: state.layers.map((layer) => layer.id === id ? { ...layer, name } : layer),
-        updatedAt: touched(),
-      })),
+      setActiveLayer: (activeLayerId) => set((state) =>
+        state.layers.some((layer) => layer.id === activeLayerId) ? { activeLayerId } : state),
+      renameLayer: (id, name) => set((state) => {
+        const layer = state.layers.find((item) => item.id === id);
+        if (!layer || layer.name === name) return state;
+        return {
+          ...addHistory(state),
+          layers: state.layers.map((item) => item.id === id ? { ...item, name } : item),
+          updatedAt: touched(),
+        };
+      }),
       addLayer: (kind) => set((state) => {
-        const id = `${kind.toLowerCase()}-${Date.now()}`;
+        const id = `${kind.toLowerCase()}-${crypto.randomUUID()}`;
         const count = state.layers.filter((layer) => layer.kind === kind).length + 1;
         return {
           ...addHistory(state),
@@ -121,7 +173,7 @@ export const useDraftStore = create<DraftState>()(
         };
       }),
       removeLayer: (id) => set((state) => {
-        if (state.layers.length === 1) return state;
+        if (state.layers.length === 1 || !state.layers.some((layer) => layer.id === id)) return state;
         const layers = state.layers.filter((layer) => layer.id !== id);
         return {
           ...addHistory(state),
@@ -130,43 +182,69 @@ export const useDraftStore = create<DraftState>()(
           updatedAt: touched(),
         };
       }),
-      toggleLayer: (id) => set((state) => ({
-        ...addHistory(state),
-        layers: state.layers.map((layer) => layer.id === id ? { ...layer, visible: !layer.visible } : layer),
-        updatedAt: touched(),
-      })),
-      beginStroke: () => set((state) => state.strokeStart ? state : { strokeStart: snapshot(state) }),
-      endStroke: () => set((state) => state.strokeStart ? {
-        past: [...state.past.slice(-49), state.strokeStart],
-        future: [],
-        strokeStart: null,
-      } : state),
-      paintPixels: (coordinates) => set((state) => ({
-        layers: state.layers.map((layer) => {
-          if (layer.id !== state.activeLayerId) return layer;
-          const next = new Map(layer.pixels.map((pixel) => [`${pixel.x},${pixel.y}`, pixel]));
-          for (const { x, y } of coordinates) next.set(`${x},${y}`, { x, y, color: state.color });
-          return {
-            ...layer,
-            pixels: [...next.values()],
-          };
-        }),
-        updatedAt: touched(),
-      })),
-      erasePixels: (coordinates) => set((state) => {
-        const removed = new Set(coordinates.map(({ x, y }) => `${x},${y}`));
+      toggleLayer: (id) => set((state) => {
+        if (!state.layers.some((layer) => layer.id === id)) return state;
         return {
-        layers: state.layers.map((layer) => layer.id === state.activeLayerId
-          ? { ...layer, pixels: layer.pixels.filter((pixel) => !removed.has(`${pixel.x},${pixel.y}`)) }
-          : layer),
-        updatedAt: touched(),
+          ...addHistory(state),
+          layers: state.layers.map((layer) => layer.id === id ? { ...layer, visible: !layer.visible } : layer),
+          updatedAt: touched(),
         };
       }),
-      clearActiveLayer: () => set((state) => ({
-        ...addHistory(state),
-        layers: state.layers.map((layer) => layer.id === state.activeLayerId ? { ...layer, pixels: [] } : layer),
-        updatedAt: touched(),
-      })),
+      beginStroke: () => set((state) => state.strokeStart ? state : { strokeStart: snapshot(state) }),
+      endStroke: () => set((state) => {
+        if (!state.strokeStart) return state;
+        if (state.layers === state.strokeStart.layers) return { strokeStart: null };
+        return {
+          past: [...state.past.slice(-49), state.strokeStart],
+          future: [],
+          strokeStart: null,
+        };
+      }),
+      paintPixels: (coordinates) => set((state) => {
+        const active = state.layers.find((layer) => layer.id === state.activeLayerId);
+        if (!active) return state;
+        const valid = coordinates.filter(({ x, y }) =>
+          Number.isInteger(x) && Number.isInteger(y) && x >= 0 && x < 32 && y >= 0 && y < 32);
+        if (valid.length === 0) return state;
+        const next = new Map(active.pixels.map((pixel) => [`${pixel.x},${pixel.y}`, pixel]));
+        let changed = false;
+        for (const { x, y } of valid) {
+          const key = `${x},${y}`;
+          if (next.get(key)?.color !== state.color) {
+            next.set(key, { x, y, color: state.color });
+            changed = true;
+          }
+        }
+        if (!changed) return state;
+        return {
+          layers: state.layers.map((layer) =>
+            layer.id === state.activeLayerId ? { ...layer, pixels: [...next.values()] } : layer),
+          updatedAt: touched(),
+        };
+      }),
+      erasePixels: (coordinates) => set((state) => {
+        const active = state.layers.find((layer) => layer.id === state.activeLayerId);
+        if (!active) return state;
+        const removed = new Set(coordinates
+          .filter(({ x, y }) => Number.isInteger(x) && Number.isInteger(y) && x >= 0 && x < 32 && y >= 0 && y < 32)
+          .map(({ x, y }) => `${x},${y}`));
+        if (!active.pixels.some((pixel) => removed.has(`${pixel.x},${pixel.y}`))) return state;
+        return {
+          layers: state.layers.map((layer) => layer.id === state.activeLayerId
+            ? { ...layer, pixels: layer.pixels.filter((pixel) => !removed.has(`${pixel.x},${pixel.y}`)) }
+            : layer),
+          updatedAt: touched(),
+        };
+      }),
+      clearActiveLayer: () => set((state) => {
+        const active = state.layers.find((layer) => layer.id === state.activeLayerId);
+        if (!active || active.pixels.length === 0) return state;
+        return {
+          ...addHistory(state),
+          layers: state.layers.map((layer) => layer.id === state.activeLayerId ? { ...layer, pixels: [] } : layer),
+          updatedAt: touched(),
+        };
+      }),
       undo: () => set((state) => {
         const previous = state.past.at(-1);
         if (!previous) return state;
@@ -209,11 +287,11 @@ export const useDraftStore = create<DraftState>()(
       }),
       merge: (persisted, current) => {
         const saved = persisted as Partial<DraftState>;
-        const layers = (saved.layers ?? current.layers).map((layer, index) => ({
-          ...layer,
-          name: layer.name?.trim() || `${singularKind(layer.kind)} ${index + 1}`,
-        }));
-        return { ...current, ...saved, layers, past: [], future: [], strokeStart: null };
+        const layers = restoreLayers((saved as { layers?: unknown }).layers, current.layers);
+        const activeLayerId = layers.some((layer) => layer.id === saved.activeLayerId)
+          ? saved.activeLayerId!
+          : layers[0].id;
+        return { ...current, ...saved, layers, activeLayerId, past: [], future: [], strokeStart: null };
       },
     },
   ),

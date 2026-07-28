@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { apiFetch } from "@/lib/api";
 import type { TraitVoteTotal, VoteValue } from "@/lib/types";
@@ -22,16 +22,19 @@ const label = (category: string) => category.charAt(0) + category.slice(1).toLow
 export function ArtworkVoteControls(props: Props) {
   const session = useCurrentUser();
   const [votes, setVotes] = useState<Record<string, VoteValue>>(() => Object.fromEntries(
-    props.viewerVotes.map((vote) => [vote.category ?? "ONE_OF_ONE", vote.value.toLowerCase() as VoteValue]),
+    (props.viewerVotes ?? []).map((vote) => [vote.category ?? "ONE_OF_ONE", vote.value.toLowerCase() as VoteValue]),
   ));
   const [intent, setIntent] = useState<Exclude<VoteValue, null> | null>(null);
   const [counts, setCounts] = useState({ up: props.initialUpvotes, down: props.initialDownvotes });
   const [voteError, setVoteError] = useState("");
+  const [votePending, setVotePending] = useState(false);
+  const voteInFlight = useRef(false);
   const verified = session.data?.user?.socialAccounts.some(
     (account) => account.provider === "DISCORD" && account.verificationState === "VERIFIED",
   );
 
   const submit = async (next: Exclude<VoteValue, null>, target?: string) => {
+    if (voteInFlight.current) return;
     if (!verified) {
       window.dispatchEvent(new CustomEvent("maskborn:connect"));
       return;
@@ -45,13 +48,15 @@ export function ArtworkVoteControls(props: Props) {
     const currentVote = votes[voteKey] ?? null;
     const desired = currentVote === next ? null : next;
     const previous = { votes: { ...votes }, counts };
+    voteInFlight.current = true;
+    setVotePending(true);
     setVoteError("");
     setVotes((current) => ({ ...current, [voteKey]: desired }));
     setCounts((current) => ({
       up: current.up + (currentVote === "up" ? -1 : 0) + (desired === "up" ? 1 : 0),
       down: current.down + (currentVote === "down" ? -1 : 0) + (desired === "down" ? 1 : 0),
     }));
-    setIntent(null);
+    if (props.categories.length <= 1) setIntent(null);
     try {
       const result = await apiFetch<{
         vote: "UP" | "DOWN" | null;
@@ -73,6 +78,9 @@ export function ArtworkVoteControls(props: Props) {
       if (["AUTH_REQUIRED", "DISCORD_REQUIRED"].includes((error as Error & { code?: string }).code ?? "")) {
         window.dispatchEvent(new CustomEvent("maskborn:connect"));
       }
+    } finally {
+      voteInFlight.current = false;
+      setVotePending(false);
     }
   };
 
@@ -88,13 +96,14 @@ export function ArtworkVoteControls(props: Props) {
                   type="button"
                   key={item}
                   className={votes[item] ? `voted ${votes[item] === "down" ? "down" : ""}` : ""}
+                  disabled={votePending}
                   onClick={() => submit(intent, item)}
                 >
                   {label(item)} <small>{votes[item] ? `your vote: ${votes[item]}` : `${props.traitVotes.find((total) => total.category === item)?.upvotes ?? 0} up`}</small>
                 </button>
               ))}
             </div>
-            <button type="button" className="trait-vote-cancel" onClick={() => setIntent(null)}>Cancel</button>
+            <button type="button" className="trait-vote-cancel" onClick={() => setIntent(null)}>Done</button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -106,8 +115,8 @@ export function ArtworkVoteControls(props: Props) {
       )}
       {voteError && <p className="field-error vote-error">{voteError}</p>}
       <div className="detail-vote-buttons">
-        <button className={Object.values(votes).includes("up") ? "voted" : ""} onClick={() => submit("up")}><ThumbsUp size={17} /> {counts.up} Upvote</button>
-        <button className={Object.values(votes).includes("down") ? "voted down" : ""} onClick={() => submit("down")}><ThumbsDown size={17} /> {counts.down} Downvote</button>
+        <button disabled={votePending} className={Object.values(votes).includes("up") ? "voted" : ""} onClick={() => submit("up")}><ThumbsUp size={17} /> {counts.up} Upvote</button>
+        <button disabled={votePending} className={Object.values(votes).includes("down") ? "voted down" : ""} onClick={() => submit("down")}><ThumbsDown size={17} /> {counts.down} Downvote</button>
       </div>
     </div>
   );

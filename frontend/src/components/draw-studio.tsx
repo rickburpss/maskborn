@@ -92,14 +92,17 @@ export function DrawStudio() {
     retry: false,
   });
   const usedTraitCategories = new Set(profile.data?.slots.traits.usedCategories ?? []);
+  const drawnLayers = draft.layers.filter((layer) => layer.visible && layer.pixels.length > 0);
   const availableAccessoryKinds = accessoryKinds.filter((kind) =>
     !usedTraitCategories.has(kind.toUpperCase())
     && !draft.layers.some((layer) => layer.kind === kind));
   const repeatedDraftTraits = draft.postType === "ACCESSORY"
-    ? [...new Set(draft.layers.map((layer) => layer.kind))].filter((kind) => usedTraitCategories.has(kind.toUpperCase()))
+    ? [...new Set(drawnLayers.map((layer) => layer.kind))].filter((kind) => usedTraitCategories.has(kind.toUpperCase()))
     : [];
   const oneOfOneExhausted = (profile.data?.slots.oneOfOne.consumed ?? 0) >= (profile.data?.slots.oneOfOne.limit ?? 2);
-  const drawnLayers = draft.layers.filter((layer) => layer.visible && layer.pixels.length > 0);
+  const repeatedDrawnCategories = drawnLayers
+    .map((layer) => layer.kind)
+    .filter((kind, index, kinds) => kinds.indexOf(kind) !== index);
   const invalidNamedLayers = draft.postType === "ACCESSORY"
     ? drawnLayers.filter((layer) => !validAccessoryName(layer.name))
     : [];
@@ -271,6 +274,11 @@ export function DrawStudio() {
       setPublishStatus("error");
       return;
     }
+    if (draft.postType === "ACCESSORY" && repeatedDrawnCategories.length > 0) {
+      setPublishError(`Add only one ${repeatedDrawnCategories[0].toLowerCase()} accessory per submission.`);
+      setPublishStatus("error");
+      return;
+    }
     if (takenNamedLayers.length > 0) {
       setPublishError(`Already taken: ${takenNamedLayers.map((layer) => layer.name).join(", ")}.`);
       setPublishStatus("error");
@@ -361,12 +369,12 @@ export function DrawStudio() {
               <span>Description <small>{descriptionWords}/50 words</small></span>
               <textarea
                 value={draft.description}
-                onChange={(event) => {
-                  if (wordCount(event.target.value) <= 50) draft.setDescription(event.target.value);
-                }}
+                onChange={(event) => draft.setDescription(event.target.value)}
+                aria-invalid={descriptionWords > 50}
                 maxLength={1200}
                 rows={3}
               />
+              {descriptionWords > 50 && <small className="field-error">Remove {descriptionWords - 50} word{descriptionWords - 50 === 1 ? "" : "s"} before publishing.</small>}
             </label>
             <div className="plain-field">
               <span>Post as</span>
@@ -507,7 +515,9 @@ export function DrawStudio() {
                               ? "name available"
                               : nameChecks[`${layer.kind}:${normalizedName(layer.name)}`] === "taken"
                                 ? "name taken"
-                                : ""}
+                                : nameChecks[`${layer.kind}:${normalizedName(layer.name)}`] === "error"
+                                  ? "could not verify"
+                                  : ""}
                         </>
                       )}
                     </small>

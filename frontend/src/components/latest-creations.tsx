@@ -28,7 +28,7 @@ export function LatestCreations({ limit }: { limit?: number }) {
       previewAssetUrl: string;
       previewVariants: Array<{ id: string; label: string; categories: string[]; url: string }> | null;
       traitVotes: Array<{ category: string; upvotes: number; downvotes: number }>;
-      viewerVotes: Array<{ value: "UP" | "DOWN"; category: string | null }>;
+      viewerVotes?: Array<{ value: "UP" | "DOWN"; category: string | null }>;
       upvoteCount: number;
       downvoteCount: number;
       publishedAt: string;

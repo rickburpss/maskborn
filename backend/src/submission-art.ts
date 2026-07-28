@@ -67,6 +67,17 @@ export type TraitPreviewVariant = {
   svg: string;
 };
 
+export function createSubmissionPreview(source: SourcePixelData, baseMarkup: string, includeBase: boolean) {
+  const rects = (kinds: ReadonlySet<typeof communityLayerKinds[number]>) => source.layers
+    .filter((layer) => layer.visible && kinds.has(layer.kind))
+    .flatMap((layer) => layer.pixels)
+    .map((pixel) => `<rect x="${pixel.x}" y="${pixel.y}" width="1" height="1" fill="${pixel.color}"/>`)
+    .join("");
+  const background = rects(new Set(["Background"]));
+  const foreground = rects(new Set(["Eyes", "Hats", "Special"]));
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="512" height="512" shape-rendering="crispEdges">${background}${includeBase ? baseMarkup : ""}${foreground}</svg>`;
+}
+
 export function createTraitPreviewVariants(source: SourcePixelData, baseMarkup: string): TraitPreviewVariant[] {
   const canonical = canonicalizePixelData(source);
   const present = communityLayerKinds.filter((kind) => canonical.traits.some((trait) => trait.kind === kind));

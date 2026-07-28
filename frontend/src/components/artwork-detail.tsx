@@ -22,7 +22,7 @@ type SubmissionDetail = {
   user: { displayName: string | null; socialAccounts: Array<{ username: string }> };
   galleryEntry: unknown | null;
   traitVotes: Array<{ category: string; upvotes: number; downvotes: number }>;
-  viewerVotes: Array<{ value: "UP" | "DOWN"; category: string | null }>;
+  viewerVotes?: Array<{ value: "UP" | "DOWN"; category: string | null }>;
 };
 
 export function ArtworkDetail({ slug }: { slug: string }) {
@@ -73,7 +73,7 @@ export function ArtworkDetail({ slug }: { slug: string }) {
             initialUpvotes={artwork.upvoteCount}
             initialDownvotes={artwork.downvoteCount}
             traitVotes={artwork.traitVotes}
-            viewerVotes={artwork.viewerVotes}
+            viewerVotes={artwork.viewerVotes ?? []}
           />
           <div className="vote-window"><span>Vote record</span><p>The 24-hour voting window ends at {voteClosesAt.toLocaleString()}.</p></div>
           <button className="button button-dark" onClick={async () => {

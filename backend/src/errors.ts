@@ -95,6 +95,16 @@ export function errorHandler(error: unknown, req: Request, res: Response, _next:
       });
       return;
     }
+    if (prismaError.code === "P2021") {
+      res.status(503).json({
+        error: {
+          code: "DATABASE_SCHEMA_OUTDATED",
+          message: "The database schema is not ready for this feature. Apply the latest Prisma schema and retry.",
+          requestId: req.id,
+        },
+      });
+      return;
+    }
   }
 
   console.error(`[${req.id}]`, error);

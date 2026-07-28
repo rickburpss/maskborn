@@ -10,6 +10,7 @@ import { ApiError } from "../errors.js";
 import { requireVerifiedDiscord } from "../middleware/auth.js";
 import { objectStorage } from "../object-storage.js";
 import {
+  createSubmissionPreview,
   createTraitPreviewVariants,
   normalizeAccessoryName,
   sourcePixelDataSchema,
@@ -113,10 +114,24 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
   }
   const sourceBody = Buffer.from(`${JSON.stringify(body.pixelData, null, 2)}\n`, "utf8");
   const sourceHash = createHash("sha256").update(sourceBody).digest("hex");
-  const previewBody = decodeSvgDataUrl(body.previewAssetUrl);
-  const calculatedMediaHash = createHash("sha256").update(previewBody).digest("hex");
-  if (calculatedMediaHash !== body.mediaHash.toLowerCase()) {
+  const suppliedPreviewBody = decodeSvgDataUrl(body.previewAssetUrl);
+  const suppliedMediaHash = createHash("sha256").update(suppliedPreviewBody).digest("hex");
+  if (suppliedMediaHash !== body.mediaHash.toLowerCase()) {
     throw new ApiError(422, "MEDIA_HASH_MISMATCH", "The preview hash does not match the uploaded artwork.");
+  }
+  const baseMarkup = await getBaseMarkup();
+  const previewBody = Buffer.from(createSubmissionPreview(
+    body.pixelData,
+    baseMarkup,
+    body.kind === "TRAIT_EXTENSION" || !body.pixelData.startBlank,
+  ), "utf8");
+  const calculatedMediaHash = createHash("sha256").update(previewBody).digest("hex");
+  if (calculatedMediaHash !== suppliedMediaHash) {
+    throw new ApiError(
+      422,
+      "PREVIEW_SOURCE_MISMATCH",
+      "The preview does not match the submitted pixel layers. Rebuild the preview and try again.",
+    );
   }
   const pixelDataKey = `submissions/${userId}/${sourceHash}/source.json`;
   const previewAssetKey = `submissions/${userId}/${calculatedMediaHash}/preview.svg`;
@@ -251,7 +266,7 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
       objectStorage.putPublic(previewAssetKey, previewBody, "image/svg+xml; charset=utf-8"),
     ]);
     const previewVariants = body.kind === "TRAIT_EXTENSION"
-      ? createTraitPreviewVariants(body.pixelData, await getBaseMarkup())
+      ? createTraitPreviewVariants(body.pixelData, baseMarkup)
       : [];
     const storedVariants = await Promise.all(previewVariants.map(async (variant) => {
       const key = `submissions/${userId}/${sourceHash}/variants/${variant.id}.svg`;
@@ -315,7 +330,11 @@ submissionsRouter.post("/submissions", requireVerifiedDiscord, asyncRoute(async 
       },
     });
     return { statusCode: 201, response };
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
+  }, {
+    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    maxWait: 10_000,
+    timeout: 30_000,
+  }));
 
   res.status(result.statusCode).json(result.response);
 }));
