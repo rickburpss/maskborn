@@ -7,7 +7,7 @@ import { useRef, useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { apiFetch } from "@/lib/api";
-import { selectLargestPreviewVariant } from "@/lib/artwork-preview";
+import { genericPreviewLabel, selectLargestPreviewVariant } from "@/lib/artwork-preview";
 import type { Artwork, VoteValue } from "@/lib/types";
 
 export function ArtCard({ artwork, index }: { artwork: Artwork; index: number }) {
@@ -102,7 +102,11 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
       transition={{ delay: Math.min(index * 0.05, 0.2) }}
     >
       <Link href={`/art/${artwork.slug}`} className="art-image-link">
-        <PixelArtwork variant={artwork.variant} source={previewSource} label={`${artwork.title}${selectedVariant ? ` — ${selectedVariant.label}` : ""}`} />
+        <PixelArtwork
+          variant={artwork.variant}
+          source={previewSource}
+          label={`${artwork.title}${selectedVariant ? ` — ${genericPreviewLabel(selectedVariant, artwork.categories ?? [])}` : ""}`}
+        />
         <span className="art-type">{artwork.type}</span>
         <span className={`status-tag ${artwork.status === "Added to gallery" ? "accepted" : ""}`}>
           {artwork.status}
@@ -120,7 +124,7 @@ export function ArtCard({ artwork, index }: { artwork: Artwork; index: number })
                 aria-pressed={activePreview === variant.id || (!activePreview && defaultVariant?.id === variant.id)}
                 onClick={() => setActivePreview(variant.id)}
               >
-                {variant.label}
+                {genericPreviewLabel(variant, artwork.categories ?? [])}
               </button>
             ))}
           </div>

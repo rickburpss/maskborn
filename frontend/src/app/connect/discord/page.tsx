@@ -6,10 +6,23 @@ import { API_URL } from "@/lib/api";
 
 const healthUrl = `${API_URL}/api/health`;
 const discordUrl = `${API_URL}/api/auth/discord/start`;
+const oauthMessages: Record<string, string> = {
+  "not-configured": "Discord is not configured on the server.",
+  "invalid-state": "The Discord login expired or its secure state cookie was blocked. Please try again.",
+  "token-failed": "Discord rejected the login exchange. Check the production redirect URI.",
+  "profile-failed": "Discord signed in, but the profile could not be read.",
+  "bot-account": "Bot accounts cannot verify a Mask Born profile.",
+  "create-profile-first": "Create your Mask Born profile first, then link Discord.",
+};
 
 export default function DiscordConnectPage() {
   const [attempt, setAttempt] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [oauthError, setOauthError] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const code = new URLSearchParams(window.location.search).get("error");
+    return code ? oauthMessages[code] ?? "Discord login could not be completed." : "";
+  });
 
   const wake = useCallback(() => {
     setFailed(false);
@@ -17,6 +30,7 @@ export default function DiscordConnectPage() {
   }, []);
 
   useEffect(() => {
+    if (oauthError) return;
     let cancelled = false;
     let timer: number | undefined;
     const startedAt = Date.now();
@@ -45,19 +59,23 @@ export default function DiscordConnectPage() {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
     };
-  }, [attempt]);
+  }, [attempt, oauthError]);
 
   return (
     <section className="discord-wake shell">
-      <LoaderCircle className="discord-wake-spinner" size={30} />
+      {!oauthError && <LoaderCircle className="discord-wake-spinner" size={30} />}
       <p className="eyebrow">Discord identity</p>
-      <h1>{failed ? "The order is taking too long." : "Waking the order."}</h1>
+      <h1>{oauthError ? "Discord did not connect." : failed ? "The order is taking too long." : "Waking the order."}</h1>
       <p>
-        {failed
+        {oauthError || (failed
           ? "Try again and we will continue with Discord as soon as it is awake."
-          : "Stay here your Discord login will open automatically when it is ready."}
+          : "Stay here your Discord login will open automatically when it is ready.")}
       </p>
-      {failed && <button className="button button-amber" onClick={wake}>Try again <ArrowRight size={16} /></button>}
+      {(failed || oauthError) && <button className="button button-amber" onClick={() => {
+        window.history.replaceState({}, "", "/connect/discord");
+        setOauthError("");
+        wake();
+      }}>Try again <ArrowRight size={16} /></button>}
     </section>
   );
 }

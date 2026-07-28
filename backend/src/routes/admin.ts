@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { GalleryEntryKind, GeneratorCategory, PublicationState } from "../generated/prisma/client.js";
+import { GalleryEntryKind, GeneratorCategory, PublicationState, RestrictionType } from "../generated/prisma/client.js";
 import { z } from "zod";
 import { db } from "../db.js";
 import { ApiError } from "../errors.js";
@@ -23,6 +23,115 @@ adminRouter.get("/review-queue", asyncRoute(async (_req, res) => {
     },
   });
   res.json({ items });
+}));
+
+const abuseQuery = z.object({
+  query: z.string().trim().max(80).default(""),
+  limit: z.coerce.number().int().min(1).max(50).default(25),
+});
+
+adminRouter.get("/abuse", asyncRoute(async (req, res) => {
+  const { query, limit } = abuseQuery.parse(req.query);
+  const now = new Date();
+  const recentSince = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const where = query ? {
+    OR: [
+      { id: { contains: query, mode: "insensitive" as const } },
+      { displayName: { contains: query, mode: "insensitive" as const } },
+      { socialAccounts: { some: { username: { contains: query, mode: "insensitive" as const } } } },
+      { wallets: { some: { address: { contains: query, mode: "insensitive" as const } } } },
+    ],
+  } : {
+    OR: [
+      { riskEvents: { some: { createdAt: { gte: recentSince } } } },
+      { restrictions: { some: { liftedAt: null, expiresAt: { gt: now } } } },
+    ],
+  };
+  const users = await db.user.findMany({
+    where,
+    take: limit,
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      role: true,
+      displayName: true,
+      avatarUrl: true,
+      createdAt: true,
+      socialAccounts: { select: { provider: true, username: true }, take: 4 },
+      wallets: { select: { address: true }, take: 2 },
+      restrictions: {
+        where: { liftedAt: null, expiresAt: { gt: now } },
+        orderBy: { expiresAt: "desc" },
+        select: { id: true, type: true, reasonCode: true, note: true, expiresAt: true },
+      },
+      riskEvents: {
+        where: { createdAt: { gte: recentSince } },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: { id: true, eventType: true, score: true, createdAt: true, metadata: true },
+      },
+      _count: { select: { submissions: true, votes: true, voteEvents: true } },
+    },
+  });
+  const items = users
+    .map((user) => ({
+      ...user,
+      recentRiskScore: user.riskEvents.reduce((total, event) => total + event.score, 0),
+    }))
+    .sort((a, b) => b.recentRiskScore - a.recentRiskScore);
+  res.json({ items });
+}));
+
+const restrictBody = z.object({
+  type: z.nativeEnum(RestrictionType),
+  hours: z.number().int().min(1).max(24 * 365),
+  reason: z.string().trim().min(4).max(500),
+});
+
+adminRouter.post("/users/:id/restrict", asyncRoute(async (req, res) => {
+  const body = restrictBody.parse(req.body);
+  const userId = req.params.id as string;
+  const expiresAt = new Date(Date.now() + body.hours * 60 * 60 * 1000);
+  const restriction = await db.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({ where: { id: userId }, select: { id: true, role: true } });
+    if (!user) throw new ApiError(404, "USER_NOT_FOUND", "That user was not found.");
+    if (user.role === "ADMIN") {
+      throw new ApiError(403, "ADMIN_RESTRICTION_FORBIDDEN", "Administrator accounts cannot be restricted here.");
+    }
+    const active = await tx.voteRestriction.findMany({
+      where: { userId, type: body.type, liftedAt: null, expiresAt: { gt: new Date() } },
+      select: { id: true, expiresAt: true },
+    });
+    if (active.length) {
+      await tx.voteRestriction.updateMany({
+        where: { id: { in: active.map((item) => item.id) } },
+        data: { liftedAt: new Date(), note: "Superseded by a newer administrator restriction." },
+      });
+    }
+    const created = await tx.voteRestriction.create({
+      data: {
+        userId,
+        type: body.type,
+        reasonCode: "ADMIN_ACTION",
+        note: body.reason,
+        expiresAt,
+      },
+    });
+    await tx.adminAuditLog.create({
+      data: {
+        actorId: req.auth!.userId,
+        action: "USER_RESTRICTED",
+        targetType: "User",
+        targetId: userId,
+        before: { supersededRestrictions: active },
+        after: { restrictionId: created.id, type: created.type, expiresAt: created.expiresAt },
+        reason: body.reason,
+        requestId: req.id,
+      },
+    });
+    return created;
+  });
+  res.status(201).json({ restriction });
 }));
 
 adminRouter.get("/submissions/:id/source", asyncRoute(async (req, res) => {

@@ -11,7 +11,7 @@ export default function CollectionPage() {
         index="01"
         eyebrow="The collection in progress"
         title="The planned 10,000"
-        copy="A pre-launch 32×32 collection assembled from eight generator categories. The community is helping shape which original traits and 1/1s make the final set."
+        copy="A pre-launch collection assembled from traits. The community is helping shape which original traits and 1/1s make the final set."
       />
       <CollectionBrowser />
     </>

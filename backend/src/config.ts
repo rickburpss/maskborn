@@ -45,6 +45,19 @@ const schema = z.object({
       path: ["R2_ACCOUNT_ID"],
     });
   }
+  if (value.DISCORD_CALLBACK_URL) {
+    const callback = new URL(value.DISCORD_CALLBACK_URL);
+    const expectedOrigin = new URL(
+      value.NODE_ENV === "production" ? value.FRONTEND_URL : value.BACKEND_PUBLIC_URL,
+    ).origin;
+    if (callback.origin !== expectedOrigin || callback.pathname !== "/api/auth/discord/callback") {
+      ctx.addIssue({
+        code: "custom",
+        message: `DISCORD_CALLBACK_URL must use ${value.NODE_ENV === "production" ? "FRONTEND_URL" : "BACKEND_PUBLIC_URL"} and end with /api/auth/discord/callback.`,
+        path: ["DISCORD_CALLBACK_URL"],
+      });
+    }
+  }
 });
 
 export const config = schema.parse(process.env);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { selectLargestPreviewVariant } from "./artwork-preview";
+import { genericPreviewLabel, selectLargestPreviewVariant } from "./artwork-preview";
 
 describe("artwork preview selection", () => {
   it("returns no default when a submission has no preview variants", () => {
@@ -18,5 +18,16 @@ describe("artwork preview selection", () => {
       { id: "hat", label: "Hat", categories: ["HATS"], url: "/hat.svg" },
       largest,
     ])).toBe(largest);
+  });
+
+  it("hides submitted accessory names on shared gallery cards", () => {
+    expect(genericPreviewLabel(
+      { categories: ["HATS"] },
+      ["HATS", "EYES"],
+    )).toBe("Hats");
+    expect(genericPreviewLabel(
+      { categories: ["HATS", "EYES"] },
+      ["HATS", "EYES"],
+    )).toBe("All traits");
   });
 });

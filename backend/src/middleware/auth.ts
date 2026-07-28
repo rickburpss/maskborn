@@ -66,6 +66,24 @@ export async function requireVerifiedDiscord(req: Request, _res: Response, next:
       next(new ApiError(403, "DISCORD_REQUIRED", "Link and verify a Discord account to continue."));
       return;
     }
+    if (req.auth.role !== "ADMIN") {
+      const accountRestriction = await db.voteRestriction.findFirst({
+        where: {
+          userId: req.auth.userId,
+          type: "ACCOUNT",
+          liftedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { expiresAt: "desc" },
+        select: { expiresAt: true },
+      });
+      if (accountRestriction) {
+        next(new ApiError(403, "ACCOUNT_RESTRICTED", "This account is temporarily restricted from site actions.", {
+          expiresAt: accountRestriction.expiresAt,
+        }));
+        return;
+      }
+    }
     next();
   } catch (error) {
     next(error);

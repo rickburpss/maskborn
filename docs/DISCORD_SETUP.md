@@ -16,7 +16,7 @@ installation, guild access, email access, or a paid Discord plan.
 5. Reset/copy the **Client Secret** and keep it private.
 6. Under **Redirects**, add the exact callback URLs:
    - Local: `http://localhost:4000/api/auth/discord/callback`
-   - Render production: `https://https://maskborn.vercel.app/api/auth/discord/callback`
+   - Production: `https://YOUR-WEBSITE-DOMAIN/api/auth/discord/callback`
 7. Save changes. You do not need to create a bot or configure an installation link.
 
 The redirect URI must match exactly, including scheme, hostname, port, path, and

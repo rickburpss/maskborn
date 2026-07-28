@@ -8,6 +8,7 @@ export type SharedSubmission = {
   previewAssetUrl: string;
   upvoteCount: number;
   downvoteCount: number;
+  updatedAt?: string;
   user: {
     displayName: string | null;
     socialAccounts: Array<{ username: string }>;

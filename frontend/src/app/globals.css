@@ -2801,7 +2801,7 @@ h3 {
 
 .provenance-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   margin-top: 70px;
   border-block: 1px solid var(--ink);
 }
@@ -3406,6 +3406,212 @@ body:has(.admin-shell) .site-footer {
   line-height: 1.5;
 }
 
+.detail-trait-previews {
+  width: 100%;
+  margin-top: 14px;
+  background: var(--bone);
+  text-align: left;
+}
+
+.abuse-guidance {
+  max-width: 720px;
+  margin: -14px 0 24px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.abuse-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(380px, 1.1fr);
+  gap: 20px;
+}
+
+.abuse-results,
+.abuse-detail {
+  border: 1px solid var(--ink);
+  background: var(--bone);
+}
+
+.abuse-results > button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 11px;
+  padding: 13px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+}
+
+.abuse-results > button.selected {
+  background: var(--amber);
+}
+
+.abuse-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bone);
+  font-size: 10px;
+}
+
+.abuse-results b,
+.abuse-results small {
+  display: block;
+}
+
+.abuse-results small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-score {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 25px;
+  text-align: right;
+}
+
+.risk-score small {
+  font-family: "Work Sans", sans-serif;
+  text-transform: uppercase;
+}
+
+.abuse-detail {
+  padding: 20px;
+}
+
+.abuse-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.abuse-detail-head span,
+.risk-events > span,
+.active-restrictions > span,
+.restriction-form label > span {
+  color: var(--muted);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.abuse-detail-head h2 {
+  margin: 2px 0 0;
+  font-size: 32px;
+}
+
+.abuse-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.abuse-facts div {
+  padding: 14px 8px;
+  border-right: 1px solid var(--line);
+}
+
+.abuse-facts div:last-child {
+  border-right: 0;
+}
+
+.abuse-facts span,
+.abuse-facts b {
+  display: block;
+}
+
+.abuse-facts span {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.abuse-facts b {
+  margin-top: 4px;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 25px;
+  font-weight: 400;
+}
+
+.risk-events,
+.active-restrictions {
+  margin-bottom: 18px;
+}
+
+.risk-events p,
+.active-restrictions > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 7px 0 0;
+  padding: 9px;
+  background: #dedad1;
+  font-size: 9px;
+}
+
+.risk-events p span,
+.active-restrictions small {
+  display: block;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.active-restrictions p {
+  margin: 0;
+}
+
+.active-restrictions button {
+  border: 1px solid var(--ink);
+  background: transparent;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.restriction-form {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 9px;
+}
+
+.restriction-form label {
+  display: grid;
+  gap: 5px;
+}
+
+.restriction-form select,
+.restriction-form input,
+.restriction-form textarea {
+  min-height: 39px;
+  padding: 8px;
+  border: 1px solid var(--line-dark);
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+}
+
+.restriction-reason,
+.restriction-form > button {
+  grid-column: 1 / -1;
+}
+
+.restriction-form textarea {
+  min-height: 68px;
+  resize: vertical;
+}
+
 @media (max-width: 1100px) {
   :root {
     --shell: min(100% - 40px, 1000px);
@@ -3917,6 +4123,17 @@ body:has(.admin-shell) .site-footer {
   .review-layout {
     grid-template-columns: 1fr;
   }
+
+  .abuse-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-nav nav button {
+    display: block;
+    padding: 7px 2px;
+    font-size: 7px;
+    text-align: center;
+  }
 }
 
 @media (max-width: 520px) {
@@ -3936,6 +4153,18 @@ body:has(.admin-shell) .site-footer {
 
   .detail-vote-buttons {
     grid-template-columns: 1fr;
+  }
+
+  .abuse-detail {
+    padding: 13px;
+  }
+
+  .restriction-form {
+    grid-template-columns: 1fr;
+  }
+
+  .restriction-form > * {
+    grid-column: 1;
   }
 
   .detail-vote-buttons button:first-child {

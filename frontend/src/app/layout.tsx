@@ -42,7 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <footer className="site-footer shell">
             <span>Mask Born Order</span>
             <p>Built in public, one mask at a time.</p>
-            <span>Onchain pixel collection © 2026</span>
+            <span>mask born order © 2026</span>
           </footer>
         </Providers>
       </body>

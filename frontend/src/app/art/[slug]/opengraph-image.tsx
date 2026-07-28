@@ -4,6 +4,7 @@ import { getSharedSubmission } from "@/lib/server-submission";
 export const alt = "Mask Born Order community artwork";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const dynamic = "force-dynamic";
 
 export default async function ArtworkOpenGraphImage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

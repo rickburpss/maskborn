@@ -15,6 +15,12 @@ const cookieSecurity = {
   secure: config.NODE_ENV === "production",
   sameSite: config.NODE_ENV === "production" ? "none" as const : "lax" as const,
 };
+const discordStateCookie = {
+  secure: config.NODE_ENV === "production",
+  sameSite: "lax" as const,
+};
+const discordErrorUrl = (code: string) =>
+  `${config.FRONTEND_URL}/connect/discord?error=${encodeURIComponent(code)}`;
 
 const setSessionCookie = (res: Response, token: string) => {
   res.cookie("mbo_session", token, {
@@ -94,13 +100,13 @@ authRouter.post("/auth/username", asyncRoute(async (req, res) => {
 
 authRouter.get("/auth/discord/start", asyncRoute(async (_req, res) => {
   if (!config.DISCORD_CLIENT_ID || !config.DISCORD_CLIENT_SECRET || !config.DISCORD_CALLBACK_URL) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=not-configured`);
+    res.redirect(discordErrorUrl("not-configured"));
     return;
   }
   const state = randomBytes(24).toString("base64url");
   res.cookie("mbo_discord_state", state, {
     httpOnly: true,
-    ...cookieSecurity,
+    ...discordStateCookie,
     maxAge: 10 * 60 * 1000,
   });
   const params = new URLSearchParams({
@@ -115,13 +121,13 @@ authRouter.get("/auth/discord/start", asyncRoute(async (_req, res) => {
 
 authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
   if (!config.DISCORD_CLIENT_ID || !config.DISCORD_CLIENT_SECRET || !config.DISCORD_CALLBACK_URL) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=not-configured`);
+    res.redirect(discordErrorUrl("not-configured"));
     return;
   }
   const code = typeof req.query.code === "string" ? req.query.code : "";
   const state = typeof req.query.state === "string" ? req.query.state : "";
   if (!code || !state || state !== req.cookies?.mbo_discord_state) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=invalid-state`);
+    res.redirect(discordErrorUrl("invalid-state"));
     return;
   }
 
@@ -137,7 +143,9 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
     }),
   });
   if (!tokenResponse.ok) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=token-failed`);
+    const details = await tokenResponse.json().catch(() => null) as { error?: string } | null;
+    console.error(`[${req.id}] Discord token exchange failed (${tokenResponse.status}, ${details?.error ?? "unknown"}).`);
+    res.redirect(discordErrorUrl("token-failed"));
     return;
   }
   const tokens = await tokenResponse.json() as { access_token: string };
@@ -145,7 +153,8 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
     headers: { authorization: `Bearer ${tokens.access_token}` },
   });
   if (!profileResponse.ok) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=profile-failed`);
+    console.error(`[${req.id}] Discord profile request failed (${profileResponse.status}).`);
+    res.redirect(discordErrorUrl("profile-failed"));
     return;
   }
   const profile = await profileResponse.json() as {
@@ -156,7 +165,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
     bot?: boolean;
   };
   if (profile.bot) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=bot-account`);
+    res.redirect(discordErrorUrl("bot-account"));
     return;
   }
 
@@ -170,7 +179,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
   });
   const currentAuth = req.auth;
   if (!linked && !currentAuth) {
-    res.redirect(`${config.FRONTEND_URL}/?discord=create-profile-first`);
+    res.redirect(discordErrorUrl("create-profile-first"));
     return;
   }
   const avatarUrl = profile.avatar
@@ -227,7 +236,7 @@ authRouter.get("/auth/discord/callback", asyncRoute(async (req, res) => {
       expiresAt: new Date(Date.now() + sessionLifetimeMs),
     },
   });
-  res.clearCookie("mbo_discord_state", cookieSecurity);
+  res.clearCookie("mbo_discord_state", discordStateCookie);
   setSessionCookie(res, sessionToken);
   res.redirect(`${config.FRONTEND_URL}/profile?discord=linked`);
 }));

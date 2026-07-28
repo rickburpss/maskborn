@@ -10,6 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     ? `@${artwork.user.socialAccounts[0].username}`
     : artwork.user.displayName ?? "a Mask Born Order member";
   const description = `${artwork.description} Created by ${creator}. View it and vote during the community window.`;
+  const socialImage = `/art/${artwork.slug}/opengraph-image?v=${encodeURIComponent(artwork.updatedAt ?? artwork.id)}`;
   return {
     title: artwork.title,
     description,
@@ -19,13 +20,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: artwork.title,
       description,
       url: `/art/${artwork.slug}`,
-      images: [{ url: `/art/${artwork.slug}/opengraph-image`, width: 1200, height: 630 }],
+      images: [{ url: socialImage, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title: artwork.title,
       description,
-      images: [`/art/${artwork.slug}/opengraph-image`],
+      images: [socialImage],
     },
   };
 }

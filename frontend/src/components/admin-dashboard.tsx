@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { DotLoader } from "@/components/dot-loader";
 import { apiFetch } from "@/lib/api";
+import { AdminAbusePanel } from "@/components/admin-abuse-panel";
 
 type ReviewItem = {
   id: string;
@@ -25,11 +26,14 @@ export function AdminDashboard() {
   const [note, setNote] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("Newest");
+  const [view, setView] = useState<"review" | "abuse">("review");
   const queue = useQuery({
     queryKey: ["mboadmin", "review-queue"],
     queryFn: () => apiFetch<{ items: ReviewItem[] }>("/mboadmin/review-queue"),
     retry: false,
+    enabled: view === "review",
   });
+
   const allItems = queue.data?.items;
   const items = useMemo(() => {
     const source = allItems ?? [];
@@ -59,11 +63,30 @@ export function AdminDashboard() {
     },
   });
 
+  if (view === "abuse") {
+    return (
+      <section className="admin-shell">
+        <aside className="admin-nav">
+          <div><span className="admin-mark">MBO</span><p>Control room</p></div>
+          <nav>
+            <button onClick={() => setView("review")}>Review queue</button>
+            <button className="active">Abuse monitor</button>
+          </nav>
+          <div className="admin-user"><span>AD</span><div><b>Signed-in admin</b><p>Administrator</p></div></div>
+        </aside>
+        <main className="admin-main"><AdminAbusePanel /></main>
+      </section>
+    );
+  }
+
   return (
     <section className="admin-shell">
       <aside className="admin-nav">
         <div><span className="admin-mark">MBO</span><p>Control room</p></div>
-        <nav><button className="active">Review queue</button></nav>
+        <nav>
+          <button className="active">Review queue</button>
+          <button onClick={() => setView("abuse")}>Abuse monitor</button>
+        </nav>
         <div className="admin-user"><span>AD</span><div><b>Signed-in admin</b><p>Administrator</p></div></div>
       </aside>
       <main className="admin-main">

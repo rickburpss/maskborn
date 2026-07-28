@@ -380,3 +380,27 @@
 - The animation respects the operating system's reduced-motion preference and includes
   an accessible status label while keeping the visible design to dots only.
 - Frontend TypeScript, ESLint, all 20 tests, and the production build passed.
+
+## 2026-07-28 — Trait privacy, share previews, Discord diagnostics, and abuse controls
+
+- Community artwork cards now label preview variants with generic trait categories
+  such as Hats, Eyes, and All traits; submitted accessory names are shown only on the
+  individual artwork page, where creators and voters have the detailed context.
+- Added named preview switching to individual artwork pages, made the largest combined
+  variant the safe default, and removed the internal `Submission #...` identifier.
+- Share metadata renders the submission's real public preview artwork and uses a
+  versioned, dynamic Open Graph image URL to avoid stale artwork after updates.
+- Discord OAuth failures now return to a designed error state with actionable messages
+  and safe server-side diagnostics. The state cookie uses top-level OAuth-compatible
+  SameSite settings. Production config now validates that the callback uses the
+  frontend/site origin and `/api/auth/discord/callback`, matching the Next.js API proxy;
+  both Discord and Render setup guides were corrected.
+- Added a protected `/mboadmin` abuse monitor that searches by user ID, display name,
+  social username, or wallet; blank search shows recent risk signals and active
+  restrictions. Queries are bounded, debounced, cancellable, and briefly cached.
+- Admins can apply timed VOTE, SUBMISSION, or ACCOUNT restrictions and lift them.
+  Admin accounts cannot be targeted, newer restrictions supersede older ones, all
+  changes are audited, and ACCOUNT restrictions are enforced centrally across verified
+  actions. The existing global rate limiter and client mutation locks remain in place.
+- Backend TypeScript and 12 tests passed. Frontend ESLint, production build, and 21
+  tests passed.

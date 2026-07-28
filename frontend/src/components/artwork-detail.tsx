@@ -8,6 +8,8 @@ import { ArtworkVoteControls } from "@/components/artwork-vote-controls";
 import { DotLoader } from "@/components/dot-loader";
 import { PixelArtwork } from "@/components/pixel-artwork";
 import { apiFetch } from "@/lib/api";
+import { selectLargestPreviewVariant } from "@/lib/artwork-preview";
+import type { ArtworkPreviewVariant } from "@/lib/types";
 
 type SubmissionDetail = {
   id: string;
@@ -17,6 +19,7 @@ type SubmissionDetail = {
   categories: string[];
   status: string;
   previewAssetUrl: string;
+  previewVariants?: ArtworkPreviewVariant[];
   upvoteCount: number;
   downvoteCount: number;
   publishedAt: string;
@@ -28,6 +31,7 @@ type SubmissionDetail = {
 
 export function ArtworkDetail({ slug }: { slug: string }) {
   const [shared, setShared] = useState(false);
+  const [activePreview, setActivePreview] = useState<string | null>(null);
   const submission = useQuery({
     queryKey: ["submission", slug],
     queryFn: () => apiFetch<{ item: SubmissionDetail; voteClosesAt: string }>(`/submissions/${encodeURIComponent(slug)}`),
@@ -52,12 +56,43 @@ export function ArtworkDetail({ slug }: { slug: string }) {
   const status = artwork.galleryEntry ? "Added to gallery" : artwork.status === "PENDING" ? "In review" : "Community";
   const type = artwork.kind === "ONE_OF_ONE" ? "1/1" : artwork.categories.join(" + ");
   const voteClosesAt = new Date(submission.data.voteClosesAt);
+  const defaultVariant = selectLargestPreviewVariant(artwork.previewVariants);
+  const selectedVariant = artwork.previewVariants?.find((variant) =>
+    variant.id === (activePreview ?? defaultVariant?.id));
+  const previewSource = selectedVariant?.url ?? artwork.previewAssetUrl;
 
   return (
     <section className="art-detail shell">
       <Link className="back-link" href="/community"><ArrowLeft size={15} /> Community gallery</Link>
       <div className="art-detail-grid">
-        <div className="detail-art"><PixelArtwork source={artwork.previewAssetUrl} label={artwork.title} /><span>32 × 32 / nearest-neighbour</span></div>
+        <div className="detail-art">
+          <PixelArtwork
+            source={previewSource}
+            label={`${artwork.title}${selectedVariant ? ` — ${selectedVariant.label}` : ""}`}
+          />
+          <span>32 × 32 / nearest-neighbour</span>
+          {artwork.previewVariants && artwork.previewVariants.length > 0 && (
+            <div className="trait-preview-controls detail-trait-previews" aria-label={`Named trait previews for ${artwork.title}`}>
+              <span>View submitted traits</span>
+              <div>
+                {artwork.previewVariants.map((variant) => {
+                  const active = (activePreview ?? defaultVariant?.id) === variant.id;
+                  return (
+                    <button
+                      type="button"
+                      key={variant.id}
+                      className={active ? "active" : ""}
+                      aria-pressed={active}
+                      onClick={() => setActivePreview(variant.id)}
+                    >
+                      {variant.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
         <div className="detail-copy">
           <div className="detail-labels"><span>{type}</span><span className={artwork.galleryEntry ? "accepted" : ""}>{status}</span></div>
           <h1>{artwork.title}</h1>
@@ -88,7 +123,6 @@ export function ArtworkDetail({ slug }: { slug: string }) {
         </div>
       </div>
       <div className="provenance-row">
-        <div><span>Submission</span><b>#{artwork.id}</b></div>
         <div><span>Published</span><b>{new Date(artwork.publishedAt).toLocaleDateString()}</b></div>
         <div><span>Base</span><b>Maskborn canonical 01</b></div>
         <div><span>Onchain status</span><b>Awaiting collection mint</b></div>
